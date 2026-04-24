@@ -220,11 +220,6 @@ td.primary{color:var(--text-primary);font-weight:500;}
   <div id="dashboard" style="display:none">
     <div class="controls-bar">
       <div class="controls-left">
-        <!--
-          Daily / Weekly / Monthly = CHART GROUPING ONLY.
-          All three always show the current month date range.
-          Clicking them does NOT change the date range — only how the trend chart groups data.
-        -->
         <div class="filter-group">
           <button class="filter-btn active" data-period="daily" onclick="setPeriod('daily')">Daily</button>
           <button class="filter-btn" data-period="weekly" onclick="setPeriod('weekly')">Weekly</button>
@@ -239,7 +234,6 @@ td.primary{color:var(--text-primary);font-weight:500;}
       </div>
       <span class="period-summary" id="periodSummary"></span>
     </div>
-    <!-- Quick filter pills — these set the date range -->
     <div class="quick-filters">
       <span class="quick-filter-label">Quick:</span>
       <button class="qf-btn active" data-qf="this-month" onclick="setQuickFilter('this-month',this)">This Month</button>
@@ -308,31 +302,52 @@ let CHARTS={trend:null,status:null,wow:null,top:null};
 let pendingWisp=null,pendingRoster=null,currentTableRows=[];
 const BRAND={all:'#0A8080',tp:'#EF523C',tu:'#2BABAD',un:'#BABABC'};
 
-function toISO(d){return d.toISOString().slice(0,10);}
+// ── Date helpers — always work in LOCAL time, never UTC ──
+function toISO(d){
+  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+  return`${y}-${m}-${day}`;
+}
+// Parse YYYY-MM-DD as a LOCAL midnight date (avoids UTC→local shift causing day-off-by-one)
+function localDate(s){
+  const[y,mo,d]=s.split('-').map(Number);
+  return new Date(y,mo-1,d);
+}
 function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
 function getLatestDate(){return STATE.allDates.length?STATE.allDates[STATE.allDates.length-1]:toISO(new Date());}
 function getEarliestDate(){return STATE.allDates.length?STATE.allDates[0]:toISO(new Date());}
 
+// ── Monday of a given local date ──
+function getMondayOf(d){
+  const day=d.getDay(); // 0=Sun, 1=Mon ... 6=Sat
+  const offset=day===0?6:day-1; // days since Monday
+  return addDays(d,-offset);
+}
+
 // ── Quick filter presets anchored to latest data date ──
 function getQuickRange(preset){
-  const latestStr=getLatestDate(),latest=new Date(latestStr);
+  const latestStr=getLatestDate();
+  const latest=localDate(latestStr); // LOCAL date — no timezone shift
+
   if(preset==='this-month'){
-    return{from:toISO(new Date(latest.getFullYear(),latest.getMonth(),1)),to:latestStr};
+    const from=new Date(latest.getFullYear(),latest.getMonth(),1);
+    return{from:toISO(from),to:latestStr};
   }
   if(preset==='last-30'){
     return{from:toISO(addDays(latest,-29)),to:latestStr};
   }
   if(preset==='this-week'){
-    const day=latest.getDay(),mon=new Date(latest);
-    mon.setDate(latest.getDate()-(day===0?6:day-1));
-    return{from:toISO(mon),to:latestStr};
+    // Monday of the week containing latest date → latest date
+    return{from:toISO(getMondayOf(latest)),to:latestStr};
   }
   if(preset==='last-week'){
-    const day=latest.getDay(),thisMon=new Date(latest);
-    thisMon.setDate(latest.getDate()-(day===0?6:day-1));
-    return{from:toISO(addDays(thisMon,-7)),to:toISO(addDays(thisMon,-1))};
+    // Monday of last week → Sunday of last week
+    const thisMon=getMondayOf(latest);
+    const lastMon=addDays(thisMon,-7);
+    const lastSun=addDays(thisMon,-1);
+    return{from:toISO(lastMon),to:toISO(lastSun)};
   }
-  return{from:toISO(new Date(latest.getFullYear(),latest.getMonth(),1)),to:latestStr};
+  const from=new Date(latest.getFullYear(),latest.getMonth(),1);
+  return{from:toISO(from),to:latestStr};
 }
 
 function setQuickFilter(preset,btn){
@@ -360,7 +375,6 @@ async function boot(){
 function applyData(data){
   STATE.agents=data.agents||[];STATE.roster=data.roster||{};STATE.allDates=data.allDates||[];STATE.lastUpdated=data.lastUpdated||null;
   if(!STATE.allDates.length)return;
-  // Default: This Month
   const range=getQuickRange('this-month'),earliest=getEarliestDate();
   UI.dateFrom=range.from<earliest?earliest:range.from;
   UI.dateTo=range.to;
@@ -388,15 +402,13 @@ function switchTab(tab){
   renderAll();
 }
 
-// Period buttons = CHART GROUPING ONLY. Date range is NOT changed.
 function setPeriod(p){
   UI.period=p;UI.page=1;
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.period===p));
   document.getElementById('trendBadge').textContent=p==='daily'?'Daily':p==='weekly'?'Weekly':'Monthly';
-  renderAll(); // re-render with same date range, new grouping
+  renderAll();
 }
 
-// Manual date override — clears quick pill highlight
 function applyDateRange(){
   UI.dateFrom=document.getElementById('dateFrom').value;
   UI.dateTo=document.getElementById('dateTo').value;
@@ -409,15 +421,24 @@ function getFilteredDates(){return STATE.allDates.filter(d=>d>=UI.dateFrom&&d<=U
 function totalWordsInPeriod(a,dates){return dates.reduce((s,d)=>s+(a.daily[d]||0),0);}
 function isActive(a,dates){return dates.some(d=>(a.daily[d]||0)>0);}
 function fmt(n){if(n===null||n===undefined||isNaN(n))return'—';if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return Math.round(n).toLocaleString();}
-function fmtDate(s){if(!s)return'—';const d=new Date(s);return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+function fmtDate(s){if(!s)return'—';const d=localDate(s);return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
 function deltaClass(p){if(p>0)return'up';if(p<0)return'down';return'flat';}
 function deltaText(p){if(p===null||isNaN(p))return'—';return(p>=0?'+':'')+p.toFixed(1)+'%';}
 function getAccentColor(){return BRAND[UI.activeTab]||BRAND.all;}
 
 function aggregateDates(dates){
   if(UI.period==='daily')return dates.map(d=>({label:d,dates:[d]}));
-  if(UI.period==='weekly'){const map={};dates.forEach(d=>{const dt=new Date(d),day=dt.getDay(),mon=new Date(dt);mon.setDate(dt.getDate()-(day===0?6:day-1));const key=mon.toISOString().slice(0,10);if(!map[key])map[key]={label:'W/'+key.slice(5),dates:[]};map[key].dates.push(d);});return Object.values(map);}
-  const map={};dates.forEach(d=>{const key=d.slice(0,7);if(!map[key])map[key]={label:new Date(d).toLocaleDateString('en-US',{month:'short',year:'2-digit'}),dates:[]};map[key].dates.push(d);});return Object.values(map);
+  if(UI.period==='weekly'){
+    const map={};
+    dates.forEach(d=>{
+      const ld=localDate(d),mon=getMondayOf(ld);
+      const key=toISO(mon);
+      if(!map[key])map[key]={label:'W/'+key.slice(5),dates:[]};
+      map[key].dates.push(d);
+    });
+    return Object.values(map);
+  }
+  const map={};dates.forEach(d=>{const key=d.slice(0,7);if(!map[key])map[key]={label:localDate(d).toLocaleDateString('en-US',{month:'short',year:'2-digit'}),dates:[]};map[key].dates.push(d);});return Object.values(map);
 }
 
 function renderAll(){
@@ -429,26 +450,35 @@ function renderAll(){
 }
 
 function getCurrentAndPriorWeek(){
-  const latest=new Date(UI.dateTo),day=latest.getDay(),monday=new Date(latest);
-  monday.setDate(latest.getDate()-(day===0?6:day-1));
-  const pm=new Date(monday);pm.setDate(monday.getDate()-7);
-  const ps=new Date(monday);ps.setDate(monday.getDate()-1);
-  return{currentWeek:STATE.allDates.filter(d=>d>=monday.toISOString().slice(0,10)&&d<=UI.dateTo),priorWeek:STATE.allDates.filter(d=>d>=pm.toISOString().slice(0,10)&&d<=ps.toISOString().slice(0,10))};
+  const latest=localDate(UI.dateTo);
+  const monday=getMondayOf(latest);
+  const priorMon=addDays(monday,-7);
+  const priorSun=addDays(monday,-1);
+  return{
+    currentWeek:STATE.allDates.filter(d=>d>=toISO(monday)&&d<=UI.dateTo),
+    priorWeek:STATE.allDates.filter(d=>d>=toISO(priorMon)&&d<=toISO(priorSun))
+  };
 }
 
 function getMTDPeriods(){
-  const latest=new Date(UI.dateTo);
-  const mtdStart=new Date(latest.getFullYear(),latest.getMonth(),1).toISOString().slice(0,10);
-  const lme=new Date(latest.getFullYear(),latest.getMonth(),0),lms=new Date(lme.getFullYear(),lme.getMonth(),1);
-  const sd=new Date(lms);sd.setDate(latest.getDate());
-  return{mtdCurrent:STATE.allDates.filter(d=>d>=mtdStart&&d<=UI.dateTo),mtdPrior:STATE.allDates.filter(d=>d>=lms.toISOString().slice(0,10)&&d<=new Date(Math.min(sd,lme)).toISOString().slice(0,10))};
+  const latest=localDate(UI.dateTo);
+  const mtdStart=toISO(new Date(latest.getFullYear(),latest.getMonth(),1));
+  const lme=new Date(latest.getFullYear(),latest.getMonth(),0); // last day of prior month
+  const lms=new Date(lme.getFullYear(),lme.getMonth(),1);       // first day of prior month
+  const sameDay=new Date(lms.getFullYear(),lms.getMonth(),latest.getDate());
+  const capDay=sameDay>lme?lme:sameDay;
+  return{
+    mtdCurrent:STATE.allDates.filter(d=>d>=mtdStart&&d<=UI.dateTo),
+    mtdPrior:STATE.allDates.filter(d=>d>=toISO(lms)&&d<=toISO(capDay))
+  };
 }
 
 function getPriorPeriodDates(dates){
   if(!dates.length)return[];
-  const span=dates.length,from=new Date(dates[0]),to=new Date(dates[0]);
-  from.setDate(from.getDate()-span);to.setDate(to.getDate()-1);
-  return STATE.allDates.filter(d=>d>=from.toISOString().slice(0,10)&&d<=to.toISOString().slice(0,10));
+  const span=dates.length;
+  const from=addDays(localDate(dates[0]),-span);
+  const to=addDays(localDate(dates[0]),-1);
+  return STATE.allDates.filter(d=>d>=toISO(from)&&d<=toISO(to));
 }
 
 function renderKPIs(agents,dates){
@@ -500,12 +530,14 @@ function renderStatusChart(agents,dates){
 }
 
 function renderWoWChart(agents){
-  const color=getAccentColor(),latest=new Date(UI.dateTo),weeks=[];
+  const color=getAccentColor();
+  const latest=localDate(UI.dateTo);
+  const weeks=[];
   for(let i=7;i>=0;i--){
-    const we=new Date(latest);we.setDate(latest.getDate()-(i*7));
-    const ws=new Date(we);ws.setDate(we.getDate()-6);
-    const wDates=STATE.allDates.filter(d=>d>=ws.toISOString().slice(0,10)&&d<=we.toISOString().slice(0,10));
-    weeks.push({label:'W'+ws.toLocaleDateString('en-US',{month:'short',day:'numeric'}),total:agents.reduce((s,a)=>s+totalWordsInPeriod(a,wDates),0),isCurrent:i===0});
+    const weekEnd=addDays(latest,-(i*7));
+    const weekStart=addDays(weekEnd,-6);
+    const wDates=STATE.allDates.filter(d=>d>=toISO(weekStart)&&d<=toISO(weekEnd));
+    weeks.push({label:'W'+weekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'}),total:agents.reduce((s,a)=>s+totalWordsInPeriod(a,wDates),0),isCurrent:i===0});
   }
   if(CHARTS.wow)CHARTS.wow.destroy();
   CHARTS.wow=new Chart(document.getElementById('wowChart'),{type:'bar',data:{labels:weeks.map(w=>w.label),datasets:[{data:weeks.map(w=>w.total),backgroundColor:weeks.map(w=>w.isCurrent?color:color+'66'),borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)+' words'}}},scales:{x:{grid:{display:false},ticks:{color:'#8892a4',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#8892a4',font:{size:11},callback:v=>fmt(v)},beginAtZero:true}}}});
