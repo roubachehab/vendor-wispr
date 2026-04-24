@@ -13,7 +13,6 @@
   --bg-base:#0f1117;--bg-surface:#171b26;--bg-card:#1e2333;--bg-card-hover:#242a3d;--bg-input:#252b3b;
   --border:rgba(255,255,255,0.07);--border-strong:rgba(255,255,255,0.14);
   --text-primary:#f0f2f8;--text-secondary:#c4cad6;--text-muted:#8892a4;--text-dim:#525c6d;--text-inverse:#0f1117;
-  /* Brand colors */
   --accent-all:#0A8080;--accent-all-dim:rgba(10,128,128,0.15);
   --accent-tp:#EF523C;--accent-tp-dim:rgba(239,82,60,0.13);
   --accent-tu:#2BABAD;--accent-tu-dim:rgba(43,171,173,0.13);
@@ -65,12 +64,10 @@ body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-pri
 .filter-btn:last-child{border-right:none;}
 .filter-btn:hover{color:var(--text-primary);background:var(--bg-card-hover);}
 .filter-btn.active{background:var(--bg-input);color:var(--text-primary);font-weight:600;}
-/* Date range — fully legible */
 .date-range{display:flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:7px 14px;}
 .date-input{background:none;border:none;color:var(--text-primary);font-family:var(--font-mono);font-size:12px;font-weight:500;cursor:pointer;outline:none;width:100px;}
 .date-input::-webkit-calendar-picker-indicator{filter:invert(0.7);cursor:pointer;}
 .date-sep{color:var(--text-muted);font-size:12px;}
-/* Period summary — clearly visible */
 .period-summary{font-size:12px;font-weight:500;color:var(--text-secondary);font-family:var(--font-mono);}
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px;}
 .kpi-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-card);transition:border-color 0.2s,box-shadow 0.2s;position:relative;overflow:hidden;}
@@ -97,13 +94,11 @@ body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-pri
 .table-title{font-size:14px;font-weight:600;color:var(--text-primary);}
 .table-subtitle{font-size:11px;color:var(--text-muted);margin-top:2px;}
 .table-controls{display:flex;align-items:center;gap:8px;}
-/* Search input — white text */
 .search-input{background:var(--bg-input);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:7px 12px 7px 32px;font-family:var(--font-body);font-size:13px;color:var(--text-primary);outline:none;width:220px;transition:border-color 0.15s;}
 .search-input::placeholder{color:var(--text-muted);}
 .search-input:focus{border-color:var(--tab-accent);}
 .search-wrap{position:relative;}
 .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--text-muted);pointer-events:none;}
-/* Select dropdowns — white text */
 .select-input{background:var(--bg-input);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:7px 12px;font-family:var(--font-body);font-size:13px;color:var(--text-primary);outline:none;cursor:pointer;}
 .select-input option{background:var(--bg-card);color:var(--text-primary);}
 .table-scroll{overflow-x:auto;}
@@ -295,6 +290,35 @@ let CHARTS={trend:null,status:null,wow:null,top:null};
 let pendingWisp=null,pendingRoster=null,currentTableRows=[];
 const BRAND={all:'#0A8080',tp:'#EF523C',tu:'#2BABAD',un:'#BABABC'};
 
+// ── Date helpers ──
+function toISO(d){return d.toISOString().slice(0,10);}
+function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
+function addMonths(d,n){const r=new Date(d);r.setMonth(r.getMonth()+n);return r;}
+
+// Returns the latest date in the dataset (closest to today)
+function getLatestDate(){
+  if(!STATE.allDates.length)return toISO(new Date());
+  return STATE.allDates[STATE.allDates.length-1];
+}
+
+// Compute from/to for each period preset anchored to latest data date
+function getPresetRange(period){
+  const latest=new Date(getLatestDate());
+  if(period==='daily'){
+    // Last 30 days ending on latest data date
+    return{from:toISO(addDays(latest,-29)),to:toISO(latest)};
+  }
+  if(period==='weekly'){
+    // Last 8 weeks (56 days) ending on latest data date
+    return{from:toISO(addDays(latest,-55)),to:toISO(latest)};
+  }
+  if(period==='monthly'){
+    // Last 6 months ending on latest data date
+    return{from:toISO(addMonths(latest,-6)),to:toISO(latest)};
+  }
+  return{from:toISO(addDays(latest,-29)),to:toISO(latest)};
+}
+
 async function boot(){
   setLoading(true,'Loading dashboard data…');
   try{
@@ -309,11 +333,10 @@ async function boot(){
 function applyData(data){
   STATE.agents=data.agents||[];STATE.roster=data.roster||{};STATE.allDates=data.allDates||[];STATE.lastUpdated=data.lastUpdated||null;
   if(!STATE.allDates.length)return;
-  const latest=STATE.allDates[STATE.allDates.length-1],latestD=new Date(latest),fromD=new Date(latestD);
-  fromD.setDate(fromD.getDate()-29);
-  const fromStr=fromD.toISOString().slice(0,10);
-  UI.dateFrom=fromStr<STATE.allDates[0]?STATE.allDates[0]:fromStr;
-  UI.dateTo=latest;
+  // Set initial range to daily preset
+  const range=getPresetRange('daily');
+  UI.dateFrom=range.from<STATE.allDates[0]?STATE.allDates[0]:range.from;
+  UI.dateTo=range.to;
   document.getElementById('dateFrom').value=UI.dateFrom;
   document.getElementById('dateTo').value=UI.dateTo;
   if(STATE.lastUpdated)document.getElementById('lastUpdatedBadge').textContent='Updated '+fmtDate(STATE.lastUpdated);
@@ -337,14 +360,27 @@ function switchTab(tab){
   renderAll();
 }
 
+// Period button: set preset date range AND update grouping
 function setPeriod(p){
-  UI.period=p;
+  UI.period=p;UI.page=1;
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.period===p));
   document.getElementById('trendBadge').textContent=p==='daily'?'Daily':p==='weekly'?'Weekly':'Monthly';
+  // Apply the preset date range for this period
+  const range=getPresetRange(p);
+  UI.dateFrom=range.from<STATE.allDates[0]?STATE.allDates[0]:range.from;
+  UI.dateTo=range.to;
+  document.getElementById('dateFrom').value=UI.dateFrom;
+  document.getElementById('dateTo').value=UI.dateTo;
   renderAll();
 }
 
-function applyDateRange(){UI.dateFrom=document.getElementById('dateFrom').value;UI.dateTo=document.getElementById('dateTo').value;UI.page=1;renderAll();}
+// Manual date input override — stays on current period grouping
+function applyDateRange(){
+  UI.dateFrom=document.getElementById('dateFrom').value;
+  UI.dateTo=document.getElementById('dateTo').value;
+  UI.page=1;renderAll();
+}
+
 function getAgentsForTab(){return UI.activeTab==='all'?STATE.agents:STATE.agents.filter(a=>a.team===UI.activeTab);}
 function getFilteredDates(){return STATE.allDates.filter(d=>d>=UI.dateFrom&&d<=UI.dateTo);}
 function totalWordsInPeriod(a,dates){return dates.reduce((s,d)=>s+(a.daily[d]||0),0);}
@@ -424,13 +460,6 @@ function renderKPIs(agents,dates){
 
 function setKPI(key,value,pct){document.getElementById('kpi-'+key).textContent=value;setDelta('kpi-'+key+'-delta',pct);}
 function setDelta(id,pct){const el=document.getElementById(id);if(!el)return;el.className='delta '+deltaClass(pct);el.textContent=deltaText(pct);}
-
-function renderTrendChart(agents,dates){
-  const color=getAccentColor(),groups=aggregateDates(dates);
-  const values=groups.map(g=>agents.reduce((s,a)=>s+totalWordsInPeriod(a,g.dates),0));
-  if(CHARTS.trend)CHARTS.trend.destroy();
-  CHARTS.trend=new Chart(document.getElementById('trendChart'),{type:'line',data:{labels:groups.map(g=>g.label),datasets:[{data:values,borderColor:color,backgroundColor:color+'22',borderWidth:2,fill:true,tension:0.4,pointRadius:groups.length>60?0:3,pointBackgroundColor:color}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)+' words'}}},scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#8892a4',font:{size:11},maxTicksLimit:12}},yz:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#8892a4',font:{size:11},callback:v=>fmt(v)},beginAtZero:true}}}});
-}
 
 function renderTrendChart(agents,dates){
   const color=getAccentColor(),groups=aggregateDates(dates);
