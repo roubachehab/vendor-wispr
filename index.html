@@ -126,11 +126,38 @@ td.primary{color:var(--text-primary);font-weight:500;}
 .team-badge.tp{background:var(--accent-tp-dim);color:var(--accent-tp);}
 .team-badge.tu{background:var(--accent-tu-dim);color:var(--accent-tu);}
 .team-badge.un{background:var(--accent-un-dim);color:var(--accent-un);}
-.tier-badge{display:inline-flex;align-items:center;font-size:12px;font-weight:600;padding:3px 9px;border-radius:20px;font-family:var(--font-mono);white-space:nowrap;}
-.tier-heavy{background:rgba(34,197,94,0.12);color:#22c55e;}
-.tier-regular{background:rgba(10,128,128,0.15);color:#0A8080;}
-.tier-light{background:rgba(245,158,11,0.12);color:#f59e0b;}
-.tier-inactive{background:var(--bg-input);color:var(--text-muted);}
+
+/* Usage badge — tooltip on hover */
+.usage-badge{display:inline-flex;align-items:center;font-size:12px;font-weight:600;padding:3px 9px;border-radius:20px;font-family:var(--font-mono);white-space:nowrap;cursor:default;position:relative;}
+.usage-high{background:rgba(34,197,94,0.12);color:#22c55e;}
+.usage-medium{background:rgba(10,128,128,0.15);color:#0A8080;}
+.usage-low{background:rgba(245,158,11,0.12);color:#f59e0b;}
+.usage-none{background:var(--bg-input);color:var(--text-muted);}
+
+/* Tooltip */
+.usage-badge::after{
+  content:attr(data-tooltip);
+  position:absolute;
+  bottom:calc(100% + 6px);
+  left:50%;
+  transform:translateX(-50%);
+  background:#0f1117;
+  border:1px solid var(--border-strong);
+  color:var(--text-secondary);
+  font-size:11px;
+  font-family:var(--font-body);
+  font-weight:400;
+  padding:6px 10px;
+  border-radius:var(--radius-sm);
+  white-space:nowrap;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.15s;
+  box-shadow:var(--shadow-elevated);
+  z-index:50;
+}
+.usage-badge:hover::after{opacity:1;}
+
 .trend-indicator{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;font-family:var(--font-mono);padding:2px 8px;border-radius:20px;}
 .trend-up{background:rgba(34,197,94,0.12);color:#22c55e;}
 .trend-down{background:rgba(239,68,68,0.12);color:#ef4444;}
@@ -275,12 +302,12 @@ td.primary{color:var(--text-primary);font-weight:500;}
               <option value="active">Active only</option>
               <option value="inactive">Inactive only</option>
             </select>
-            <select class="select-input" id="tierFilter" onchange="filterTable()">
-              <option value="all">All tiers</option>
-              <option value="Heavy User">Heavy Users</option>
-              <option value="Regular">Regular</option>
-              <option value="Light">Light</option>
-              <option value="Inactive">Inactive</option>
+            <select class="select-input" id="usageFilter" onchange="filterTable()">
+              <option value="all">All usage levels</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+              <option value="None">None</option>
             </select>
             <select class="select-input" id="sortSelect" onchange="filterTable()">
               <option value="words-desc">Words ↓</option>
@@ -298,7 +325,7 @@ td.primary{color:var(--text-primary);font-weight:500;}
             <thead><tr>
               <th>Agent</th>
               <th>Team</th>
-              <th>Tier</th>
+              <th>Usage</th>
               <th class="sorted">Words ↓</th>
               <th>Avg / Day</th>
               <th>7d Trend</th>
@@ -334,7 +361,7 @@ td.primary{color:var(--text-primary);font-weight:500;}
 <script>
 const REPO_OWNER='roubachehab',REPO_NAME='vendor-wispr',DATA_PATH='data/dashboard.json';
 let STATE={agents:[],roster:{},allDates:[],lastUpdated:null};
-let UI={activeTab:'all',period:'daily',dateFrom:null,dateTo:null,searchQuery:'',statusFilter:'all',tierFilter:'all',sortBy:'words-desc',page:1,pageSize:25};
+let UI={activeTab:'all',period:'daily',dateFrom:null,dateTo:null,searchQuery:'',statusFilter:'all',usageFilter:'all',sortBy:'words-desc',page:1,pageSize:25};
 let CHARTS={trend:null,status:null,wow:null,top:null};
 let pendingWisp=null,pendingRoster=null,currentTableRows=[];
 const BRAND={all:'#0A8080',tp:'#EF523C',tu:'#2BABAD',un:'#BABABC'};
@@ -431,8 +458,33 @@ function deltaClass(p){if(p>0)return'up';if(p<0)return'down';return'flat';}
 function deltaText(p){if(p===null||isNaN(p))return'—';return(p>=0?'+':'')+p.toFixed(1)+'%';}
 function getAccentColor(){return BRAND[UI.activeTab]||BRAND.all;}
 
-function getTier(avgDay){if(avgDay>=1000)return'Heavy User';if(avgDay>=500)return'Regular';if(avgDay>=100)return'Light';return'Inactive';}
-function tierClass(tier){if(tier==='Heavy User')return'tier-heavy';if(tier==='Regular')return'tier-regular';if(tier==='Light')return'tier-light';return'tier-inactive';}
+// ── Usage level — based on avg words/day over ALL days (total ÷ period days) ──
+// Thresholds derived from actual data distribution (2-month export, 596 agents)
+// High ≥500: top 14% — Wispr is part of daily workflow
+// Medium 150–499: 10% — regular use, not yet habitual
+// Low 1–149: 65% — sporadic use
+// None 0: 11% — no usage in period
+function getUsageLevel(totalWords, numDays){
+  if(numDays===0)return'None';
+  const avg=totalWords/numDays;
+  if(avg>=500)return'High';
+  if(avg>=150)return'Medium';
+  if(avg>=1)return'Low';
+  return'None';
+}
+function usageClass(level){
+  if(level==='High')return'usage-high';
+  if(level==='Medium')return'usage-medium';
+  if(level==='Low')return'usage-low';
+  return'usage-none';
+}
+// Tooltip text shown on hover
+const USAGE_TOOLTIPS={
+  'High':'≥ 500 avg words/day — daily workflow',
+  'Medium':'150–499 avg words/day — regular use',
+  'Low':'1–149 avg words/day — sporadic use',
+  'None':'No usage in this period'
+};
 
 function aggregateDates(dates){
   if(UI.period==='daily')return dates.map(d=>({label:d,dates:[d]}));
@@ -536,7 +588,7 @@ function renderTopChart(agents,dates){
 function filterTable(){
   UI.searchQuery=document.getElementById('searchInput').value.toLowerCase();
   UI.statusFilter=document.getElementById('statusFilter').value;
-  UI.tierFilter=document.getElementById('tierFilter').value;
+  UI.usageFilter=document.getElementById('usageFilter').value;
   UI.sortBy=document.getElementById('sortSelect').value;
   UI.page=1;
   renderTable(getAgentsForTab(),getFilteredDates());
@@ -551,6 +603,7 @@ function buildRows(agents,dates){
   let rows=agents.map(a=>{
     const words=totalWordsInPeriod(a,dates);
     const activeDays=dates.filter(d=>(a.daily[d]||0)>0).length;
+    // avgDay for display = avg on active days only
     const avgDay=activeDays>0?Math.round(words/activeDays):0;
     let peakDay=0;
     dates.forEach(d=>{const v=a.daily[d]||0;if(v>peakDay)peakDay=v;});
@@ -562,14 +615,15 @@ function buildRows(agents,dates){
     let trendPct=null,trendDir='flat';
     if(prior7>0){trendPct=((curr7-prior7)/prior7)*100;trendDir=trendPct>5?'up':trendPct<-5?'down':'flat';}
     else if(curr7>0){trendDir='up';trendPct=100;}
-    const tier=getTier(avgDay);
-    return{...a,words,activeDays,avgDay,peakDay,daysSince,trendPct,trendDir,tier,teamLabel:tl[a.team]||a.team};
+    // Usage level = avg over ALL days in period (total ÷ numDays) — reflects real adoption
+    const usageLevel=getUsageLevel(words,dates.length);
+    return{...a,words,activeDays,avgDay,peakDay,daysSince,trendPct,trendDir,usageLevel,teamLabel:tl[a.team]||a.team};
   });
 
   if(UI.searchQuery)rows=rows.filter(r=>r.name.toLowerCase().includes(UI.searchQuery)||r.email.toLowerCase().includes(UI.searchQuery));
   if(UI.statusFilter==='active')rows=rows.filter(r=>r.activeDays>0);
   if(UI.statusFilter==='inactive')rows=rows.filter(r=>r.activeDays===0);
-  if(UI.tierFilter!=='all')rows=rows.filter(r=>r.tier===UI.tierFilter);
+  if(UI.usageFilter!=='all')rows=rows.filter(r=>r.usageLevel===UI.usageFilter);
 
   const[sk,sd]=UI.sortBy.split('-');
   rows.sort((a,b)=>{
@@ -600,10 +654,11 @@ function renderTable(agents,dates){
       const quietHTML=r.daysSince===null?'—'
         :r.daysSince===0?`<span style="color:var(--green)">today</span>`
         :`<span style="color:${r.daysSince>14?'#ef4444':r.daysSince>7?'#f59e0b':'var(--text-secondary)'}">${r.daysSince}d ago</span>`;
+      const tooltip=USAGE_TOOLTIPS[r.usageLevel]||'';
       return`<tr>
         <td><div class="agent-cell"><span class="agent-name">${esc(r.name)}</span><span class="agent-email">${esc(r.email)}</span></div></td>
         <td><span class="team-badge ${r.team}">${r.teamLabel}</span></td>
-        <td><span class="tier-badge ${tierClass(r.tier)}">${r.tier}</span></td>
+        <td><span class="usage-badge ${usageClass(r.usageLevel)}" data-tooltip="${tooltip}">${r.usageLevel}</span></td>
         <td class="primary">${r.words>0?fmt(r.words):'—'}</td>
         <td class="td-mono">${r.avgDay>0?fmt(r.avgDay):'—'}</td>
         <td>${trendHTML}</td>
@@ -626,9 +681,9 @@ function downloadCSV(){
   if(!currentTableRows.length){toast('No data to export','info');return;}
   const tabLabels={all:'All Agents',tp:'Teleperformance',tu:'TaskUs',un:'Unassigned'};
   const tabLabel=tabLabels[UI.activeTab]||UI.activeTab;
-  const headers=['Name','Email','Team','Tier','Words Dictated','Active Days','Avg Words/Day','7d Trend %','Peak Day Words','Days Since Last Active'];
+  const headers=['Name','Email','Team','Usage','Words Dictated','Active Days','Avg Words/Day (active days)','7d Trend %','Peak Day Words','Days Since Last Active'];
   const csvRows=currentTableRows.map(r=>[
-    csvCell(r.name),csvCell(r.email),csvCell(r.teamLabel),csvCell(r.tier),
+    csvCell(r.name),csvCell(r.email),csvCell(r.teamLabel),csvCell(r.usageLevel),
     r.words,r.activeDays,r.avgDay,
     r.trendPct!=null?Math.round(r.trendPct)+'%':'',
     r.peakDay||0,
