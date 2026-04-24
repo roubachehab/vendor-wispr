@@ -25,6 +25,8 @@
   --shadow-elevated:0 8px 32px rgba(0,0,0,0.5);
   --font-body:'DM Sans',sans-serif;--font-heading:'Playfair Display',serif;--font-mono:'DM Mono',monospace;
   --tab-accent:var(--accent-all);
+  /* Single source of truth for table text */
+  --table-fs:13px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{font-size:14px;}
@@ -116,38 +118,38 @@ th.sorted{color:var(--text-primary);}
 tbody tr{border-bottom:1px solid var(--border);transition:background 0.1s;}
 tbody tr:last-child{border-bottom:none;}
 tbody tr:hover{background:var(--bg-card-hover);}
-td{padding:11px 16px;font-size:13px;color:var(--text-secondary);white-space:nowrap;}
+/* All td content inherits 13px — no overrides allowed inside cells */
+td{padding:11px 16px;font-size:var(--table-fs);color:var(--text-secondary);white-space:nowrap;font-family:var(--font-body);}
 td.primary{color:var(--text-primary);font-weight:500;}
+/* Agent cell: name same size, email one step smaller as secondary */
 .agent-cell{display:flex;flex-direction:column;gap:2px;}
-.agent-name{font-size:13px;font-weight:500;color:var(--text-primary);}
-.agent-email{font-size:11px;color:var(--text-muted);font-family:var(--font-mono);}
-.team-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;font-family:var(--font-mono);}
+.agent-name{font-size:var(--table-fs);font-weight:500;color:var(--text-primary);}
+.agent-email{font-size:12px;color:var(--text-muted);font-family:var(--font-mono);}
+/* Badges — 12px is intentional: they live inside colored capsules */
+.team-badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:20px;font-family:var(--font-mono);}
 .team-badge.tp{background:var(--accent-tp-dim);color:var(--accent-tp);}
 .team-badge.tu{background:var(--accent-tu-dim);color:var(--accent-tu);}
 .team-badge.un{background:var(--accent-un-dim);color:var(--accent-un);}
-/* Adoption tier badges */
-.tier-badge{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;font-family:var(--font-mono);white-space:nowrap;}
+.tier-badge{display:inline-flex;align-items:center;font-size:12px;font-weight:600;padding:3px 9px;border-radius:20px;font-family:var(--font-mono);white-space:nowrap;}
 .tier-heavy{background:rgba(34,197,94,0.12);color:#22c55e;}
 .tier-regular{background:rgba(10,128,128,0.15);color:#0A8080;}
 .tier-light{background:rgba(245,158,11,0.12);color:#f59e0b;}
 .tier-inactive{background:var(--bg-input);color:var(--text-muted);}
-/* 7-day trend indicator */
-.trend-indicator{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;font-family:var(--font-mono);padding:2px 8px;border-radius:20px;}
+/* Trend — 12px inside capsule */
+.trend-indicator{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;font-family:var(--font-mono);padding:2px 8px;border-radius:20px;}
 .trend-up{background:rgba(34,197,94,0.12);color:#22c55e;}
 .trend-down{background:rgba(239,68,68,0.12);color:#ef4444;}
 .trend-flat{background:var(--bg-input);color:var(--text-muted);}
-/* Consistency bar */
+/* Consistency bar — value text matches table */
 .consist-wrap{display:flex;align-items:center;gap:6px;min-width:90px;}
 .consist-bar-bg{flex:1;height:4px;background:var(--bg-input);border-radius:2px;overflow:hidden;}
 .consist-bar-fill{height:100%;border-radius:2px;transition:width 0.3s;}
-.consist-val{font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);min-width:32px;}
+.consist-val{font-family:var(--font-mono);font-size:var(--table-fs);color:var(--text-secondary);min-width:36px;}
+/* Mono values in table (Avg/Day, Peak Day, Gone Quiet) */
+.td-mono{font-family:var(--font-mono);font-size:var(--table-fs);color:var(--text-secondary);}
 .status-dot{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0;}
 .status-dot.active{background:var(--green);}
 .status-dot.inactive{background:var(--text-dim);}
-.usage-bar-wrap{display:flex;align-items:center;gap:8px;min-width:100px;}
-.usage-bar-bg{flex:1;height:4px;background:var(--bg-input);border-radius:2px;overflow:hidden;}
-.usage-bar-fill{height:100%;border-radius:2px;background:var(--tab-accent);transition:width 0.3s;}
-.usage-val{font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);min-width:36px;text-align:right;}
 .pagination{padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--text-muted);}
 .page-btns{display:flex;gap:4px;}
 .page-btn{padding:5px 10px;border-radius:var(--radius-sm);background:none;border:1px solid var(--border-strong);color:var(--text-secondary);font-size:12px;font-family:var(--font-body);cursor:pointer;transition:all 0.1s;}
@@ -350,7 +352,6 @@ let CHARTS={trend:null,status:null,wow:null,top:null};
 let pendingWisp=null,pendingRoster=null,currentTableRows=[];
 const BRAND={all:'#0A8080',tp:'#EF523C',tu:'#2BABAD',un:'#BABABC'};
 
-// ── Date helpers — always LOCAL time ──
 function toISO(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return`${y}-${m}-${day}`;}
 function localDate(s){const[y,mo,d]=s.split('-').map(Number);return new Date(y,mo-1,d);}
 function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
@@ -443,19 +444,8 @@ function deltaClass(p){if(p>0)return'up';if(p<0)return'down';return'flat';}
 function deltaText(p){if(p===null||isNaN(p))return'—';return(p>=0?'+':'')+p.toFixed(1)+'%';}
 function getAccentColor(){return BRAND[UI.activeTab]||BRAND.all;}
 
-// ── Adoption tier ──
-function getTier(avgDay){
-  if(avgDay>=1000)return'Heavy User';
-  if(avgDay>=500)return'Regular';
-  if(avgDay>=100)return'Light';
-  return'Inactive';
-}
-function tierClass(tier){
-  if(tier==='Heavy User')return'tier-heavy';
-  if(tier==='Regular')return'tier-regular';
-  if(tier==='Light')return'tier-light';
-  return'tier-inactive';
-}
+function getTier(avgDay){if(avgDay>=1000)return'Heavy User';if(avgDay>=500)return'Regular';if(avgDay>=100)return'Light';return'Inactive';}
+function tierClass(tier){if(tier==='Heavy User')return'tier-heavy';if(tier==='Regular')return'tier-regular';if(tier==='Light')return'tier-light';return'tier-inactive';}
 
 function aggregateDates(dates){
   if(UI.period==='daily')return dates.map(d=>({label:d,dates:[d]}));
@@ -567,52 +557,34 @@ function filterTable(){
 
 function buildRows(agents,dates){
   const tl={tp:'Teleperformance',tu:'TaskUs',un:'Unassigned'};
-  // Last 7 dates and prior 7 dates for trend calculation
   const last7=STATE.allDates.slice(-7);
   const prev7=STATE.allDates.slice(-14,-7);
-  // Latest date for "days since active" calculation
   const latestDate=getLatestDate();
 
   let rows=agents.map(a=>{
     const words=totalWordsInPeriod(a,dates);
     const activeDays=dates.filter(d=>(a.daily[d]||0)>0).length;
     const avgDay=activeDays>0?Math.round(words/activeDays):0;
-
-    // Consistency: % of period days with any usage
     const consistency=dates.length>0?Math.round((activeDays/dates.length)*100):0;
-
-    // Peak day: highest single day in period
-    let peakDay=0,peakDate=null;
-    dates.forEach(d=>{const v=a.daily[d]||0;if(v>peakDay){peakDay=v;peakDate=d;}});
-
-    // Days since last active (vs latest date in dataset)
+    let peakDay=0;
+    dates.forEach(d=>{const v=a.daily[d]||0;if(v>peakDay)peakDay=v;});
     const lastActiveDateInPeriod=[...dates].reverse().find(d=>(a.daily[d]||0)>0)||null;
     let daysSince=null;
-    if(lastActiveDateInPeriod){
-      const diff=localDate(latestDate)-localDate(lastActiveDateInPeriod);
-      daysSince=Math.round(diff/(1000*60*60*24));
-    }
-
-    // 7-day trend: compare last 7 days vs prior 7 days
+    if(lastActiveDateInPeriod){const diff=localDate(latestDate)-localDate(lastActiveDateInPeriod);daysSince=Math.round(diff/(1000*60*60*24));}
     const curr7=last7.reduce((s,d)=>s+(a.daily[d]||0),0);
     const prior7=prev7.reduce((s,d)=>s+(a.daily[d]||0),0);
     let trendPct=null,trendDir='flat';
     if(prior7>0){trendPct=((curr7-prior7)/prior7)*100;trendDir=trendPct>5?'up':trendPct<-5?'down':'flat';}
     else if(curr7>0){trendDir='up';trendPct=100;}
-
-    // Adoption tier (based on avg words/day in period)
     const tier=getTier(avgDay);
-
-    return{...a,words,activeDays,avgDay,consistency,peakDay,peakDate,daysSince,trendPct,trendDir,tier,teamLabel:tl[a.team]||a.team};
+    return{...a,words,activeDays,avgDay,consistency,peakDay,daysSince,trendPct,trendDir,tier,teamLabel:tl[a.team]||a.team};
   });
 
-  // Filters
   if(UI.searchQuery)rows=rows.filter(r=>r.name.toLowerCase().includes(UI.searchQuery)||r.email.toLowerCase().includes(UI.searchQuery));
   if(UI.statusFilter==='active')rows=rows.filter(r=>r.activeDays>0);
   if(UI.statusFilter==='inactive')rows=rows.filter(r=>r.activeDays===0);
   if(UI.tierFilter!=='all')rows=rows.filter(r=>r.tier===UI.tierFilter);
 
-  // Sort
   const[sk,sd]=UI.sortBy.split('-');
   rows.sort((a,b)=>{
     let av,bv;
@@ -636,27 +608,26 @@ function renderTable(agents,dates){
   if(!pageRows.length){tbody.innerHTML='<tr><td colspan="9" class="no-rows">No agents match your filters</td></tr>';}
   else{
     tbody.innerHTML=pageRows.map(r=>{
-      const bp=Math.round((r.words/maxWords)*100);
-      // Consistency bar color: green>=70, amber>=40, red<40
       const cColor=r.consistency>=70?'#22c55e':r.consistency>=40?'#f59e0b':'#ef4444';
+      // All values use td class or td-mono — no inline font-size overrides
       const consistBar=`<div class="consist-wrap"><div class="consist-bar-bg"><div class="consist-bar-fill" style="width:${r.consistency}%;background:${cColor}"></div></div><span class="consist-val">${r.consistency}%</span></div>`;
-      // Trend indicator
       const trendHTML=r.trendDir==='up'
         ?`<span class="trend-indicator trend-up">↑ ${r.trendPct!=null?'+'+Math.round(r.trendPct)+'%':''}</span>`
         :r.trendDir==='down'
         ?`<span class="trend-indicator trend-down">↓ ${r.trendPct!=null?Math.round(r.trendPct)+'%':''}</span>`
         :`<span class="trend-indicator trend-flat">→ flat</span>`;
-      // Days since — "today", "Xd ago", or "—"
-      const quietHTML=r.daysSince===null?'—':r.daysSince===0?'<span style="color:var(--green)">today</span>':`<span style="color:${r.daysSince>14?'#ef4444':r.daysSince>7?'#f59e0b':'var(--text-secondary)'}">${r.daysSince}d ago</span>`;
+      const quietHTML=r.daysSince===null?'—'
+        :r.daysSince===0?`<span style="color:var(--green)">today</span>`
+        :`<span style="color:${r.daysSince>14?'#ef4444':r.daysSince>7?'#f59e0b':'var(--text-secondary)'}">${r.daysSince}d ago</span>`;
       return`<tr>
         <td><div class="agent-cell"><span class="agent-name">${esc(r.name)}</span><span class="agent-email">${esc(r.email)}</span></div></td>
         <td><span class="team-badge ${r.team}">${r.teamLabel}</span></td>
         <td><span class="tier-badge ${tierClass(r.tier)}">${r.tier}</span></td>
         <td class="primary">${r.words>0?fmt(r.words):'—'}</td>
         <td>${consistBar}</td>
-        <td>${r.avgDay>0?fmt(r.avgDay):'—'}</td>
+        <td class="td-mono">${r.avgDay>0?fmt(r.avgDay):'—'}</td>
         <td>${trendHTML}</td>
-        <td style="font-family:var(--font-mono);font-size:11px">${r.peakDay>0?fmt(r.peakDay):'—'}</td>
+        <td class="td-mono">${r.peakDay>0?fmt(r.peakDay):'—'}</td>
         <td>${quietHTML}</td>
       </tr>`;
     }).join('');
