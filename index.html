@@ -57,50 +57,23 @@ body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-pri
 .tab-item[data-tab="un"].active .tab-pill{background:var(--accent-un-dim);color:var(--accent-un);}
 .tab-item[data-tab="un"].active{border-bottom-color:var(--accent-un);color:var(--accent-un);}
 .main{flex:1;padding:28px 32px;max-width:1400px;margin:0 auto;width:100%;}
-
-/* ── Controls bar ── */
 .controls-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:16px;flex-wrap:wrap;}
 .controls-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-
-/* Period grouping toggle */
 .filter-group{display:flex;background:var(--bg-card);border:1px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden;}
 .filter-btn{padding:7px 14px;font-size:12px;font-weight:500;font-family:var(--font-body);color:var(--text-secondary);background:none;border:none;cursor:pointer;transition:all 0.15s;border-right:1px solid var(--border-strong);}
 .filter-btn:last-child{border-right:none;}
 .filter-btn:hover{color:var(--text-primary);background:var(--bg-card-hover);}
 .filter-btn.active{background:var(--bg-input);color:var(--text-primary);font-weight:600;}
-
-/* Date range picker */
 .date-range{display:flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:7px 14px;}
 .date-input{background:none;border:none;color:var(--text-primary);font-family:var(--font-mono);font-size:12px;font-weight:500;cursor:pointer;outline:none;width:100px;}
 .date-input::-webkit-calendar-picker-indicator{filter:invert(0.7);cursor:pointer;}
 .date-sep{color:var(--text-muted);font-size:12px;}
-
-/* Quick filter pills row */
 .quick-filters{display:flex;align-items:center;gap:6px;margin-bottom:20px;flex-wrap:wrap;}
 .quick-filter-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;margin-right:4px;white-space:nowrap;}
-.qf-btn{
-  padding:5px 12px;
-  border-radius:20px;
-  font-size:12px;
-  font-weight:500;
-  font-family:var(--font-body);
-  cursor:pointer;
-  transition:all 0.15s;
-  border:1px solid var(--border-strong);
-  background:var(--bg-card);
-  color:var(--text-secondary);
-  white-space:nowrap;
-}
+.qf-btn{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;font-family:var(--font-body);cursor:pointer;transition:all 0.15s;border:1px solid var(--border-strong);background:var(--bg-card);color:var(--text-secondary);white-space:nowrap;}
 .qf-btn:hover{background:var(--bg-card-hover);color:var(--text-primary);border-color:var(--tab-accent);}
-.qf-btn.active{
-  background:var(--accent-all-dim);
-  color:var(--accent-all);
-  border-color:var(--accent-all);
-}
-
-/* Period summary */
+.qf-btn.active{background:var(--accent-all-dim);color:var(--accent-all);border-color:var(--accent-all);}
 .period-summary{font-size:12px;font-weight:500;color:var(--text-secondary);font-family:var(--font-mono);}
-
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px;}
 .kpi-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-card);transition:border-color 0.2s,box-shadow 0.2s;position:relative;overflow:hidden;}
 .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--tab-accent);opacity:0.9;}
@@ -245,17 +218,18 @@ td.primary{color:var(--text-primary);font-weight:500;}
     <button class="btn btn-primary" onclick="openDrawer()">Upload Data</button>
   </div>
   <div id="dashboard" style="display:none">
-
-    <!-- Controls: period toggle + date picker -->
     <div class="controls-bar">
       <div class="controls-left">
-        <!-- Period grouping (same date range, different chart view) -->
+        <!--
+          Daily / Weekly / Monthly = CHART GROUPING ONLY.
+          All three always show the current month date range.
+          Clicking them does NOT change the date range — only how the trend chart groups data.
+        -->
         <div class="filter-group">
           <button class="filter-btn active" data-period="daily" onclick="setPeriod('daily')">Daily</button>
           <button class="filter-btn" data-period="weekly" onclick="setPeriod('weekly')">Weekly</button>
           <button class="filter-btn" data-period="monthly" onclick="setPeriod('monthly')">Monthly</button>
         </div>
-        <!-- Manual date range -->
         <div class="date-range">
           <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-muted);flex-shrink:0"><rect x="2" y="3" width="12" height="11" rx="2"/><path d="M5 1v3M11 1v3M2 7h12"/></svg>
           <input type="date" class="date-input" id="dateFrom" onchange="applyDateRange()">
@@ -265,8 +239,7 @@ td.primary{color:var(--text-primary);font-weight:500;}
       </div>
       <span class="period-summary" id="periodSummary"></span>
     </div>
-
-    <!-- Quick filter pills -->
+    <!-- Quick filter pills — these set the date range -->
     <div class="quick-filters">
       <span class="quick-filter-label">Quick:</span>
       <button class="qf-btn active" data-qf="this-month" onclick="setQuickFilter('this-month',this)">This Month</button>
@@ -274,7 +247,6 @@ td.primary{color:var(--text-primary);font-weight:500;}
       <button class="qf-btn" data-qf="this-week" onclick="setQuickFilter('this-week',this)">This Week</button>
       <button class="qf-btn" data-qf="last-week" onclick="setQuickFilter('last-week',this)">Last Week</button>
     </div>
-
     <div class="kpi-grid">
       <div class="kpi-card"><div class="kpi-label">Total Words Dictated</div><div class="kpi-value" id="kpi-total">—</div><div class="kpi-sub"><span class="delta flat" id="kpi-total-delta">—</span><span id="kpi-total-sub">vs prior period</span></div></div>
       <div class="kpi-card"><div class="kpi-label">Active Agents</div><div class="kpi-value" id="kpi-active">—</div><div class="kpi-sub"><span class="delta flat" id="kpi-active-delta">—</span><span>of <span id="kpi-active-total">—</span> in tab</span></div></div>
@@ -336,60 +308,42 @@ let CHARTS={trend:null,status:null,wow:null,top:null};
 let pendingWisp=null,pendingRoster=null,currentTableRows=[];
 const BRAND={all:'#0A8080',tp:'#EF523C',tu:'#2BABAD',un:'#BABABC'};
 
-// ── Date helpers ──
 function toISO(d){return d.toISOString().slice(0,10);}
 function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
-
-// Returns the best "today" — latest date in the dataset
 function getLatestDate(){return STATE.allDates.length?STATE.allDates[STATE.allDates.length-1]:toISO(new Date());}
 function getEarliestDate(){return STATE.allDates.length?STATE.allDates[0]:toISO(new Date());}
 
-// ── Quick filter presets — all anchored to latest data date ──
+// ── Quick filter presets anchored to latest data date ──
 function getQuickRange(preset){
-  const latestStr=getLatestDate();
-  const latest=new Date(latestStr);
-
+  const latestStr=getLatestDate(),latest=new Date(latestStr);
   if(preset==='this-month'){
-    // 1st of the same month as latest date → latest date
-    const from=new Date(latest.getFullYear(),latest.getMonth(),1);
-    return{from:toISO(from),to:latestStr};
+    return{from:toISO(new Date(latest.getFullYear(),latest.getMonth(),1)),to:latestStr};
   }
   if(preset==='last-30'){
     return{from:toISO(addDays(latest,-29)),to:latestStr};
   }
   if(preset==='this-week'){
-    // Monday of the week containing latest date → latest date
-    const day=latest.getDay();
-    const mon=new Date(latest);
+    const day=latest.getDay(),mon=new Date(latest);
     mon.setDate(latest.getDate()-(day===0?6:day-1));
     return{from:toISO(mon),to:latestStr};
   }
   if(preset==='last-week'){
-    const day=latest.getDay();
-    const thisMon=new Date(latest);
+    const day=latest.getDay(),thisMon=new Date(latest);
     thisMon.setDate(latest.getDate()-(day===0?6:day-1));
-    const lastMon=addDays(thisMon,-7);
-    const lastSun=addDays(thisMon,-1);
-    return{from:toISO(lastMon),to:toISO(lastSun)};
+    return{from:toISO(addDays(thisMon,-7)),to:toISO(addDays(thisMon,-1))};
   }
-  // fallback: this month
-  const from=new Date(latest.getFullYear(),latest.getMonth(),1);
-  return{from:toISO(from),to:latestStr};
+  return{from:toISO(new Date(latest.getFullYear(),latest.getMonth(),1)),to:latestStr};
 }
 
 function setQuickFilter(preset,btn){
-  // Highlight active pill
   document.querySelectorAll('.qf-btn').forEach(b=>b.classList.remove('active'));
   if(btn)btn.classList.add('active');
-  // Apply the date range
-  const range=getQuickRange(preset);
-  const earliest=getEarliestDate();
+  const range=getQuickRange(preset),earliest=getEarliestDate();
   UI.dateFrom=range.from<earliest?earliest:range.from;
   UI.dateTo=range.to;
   document.getElementById('dateFrom').value=UI.dateFrom;
   document.getElementById('dateTo').value=UI.dateTo;
-  UI.page=1;
-  renderAll();
+  UI.page=1;renderAll();
 }
 
 async function boot(){
@@ -406,14 +360,12 @@ async function boot(){
 function applyData(data){
   STATE.agents=data.agents||[];STATE.roster=data.roster||{};STATE.allDates=data.allDates||[];STATE.lastUpdated=data.lastUpdated||null;
   if(!STATE.allDates.length)return;
-  // Default to "This Month"
-  const range=getQuickRange('this-month');
-  const earliest=getEarliestDate();
+  // Default: This Month
+  const range=getQuickRange('this-month'),earliest=getEarliestDate();
   UI.dateFrom=range.from<earliest?earliest:range.from;
   UI.dateTo=range.to;
   document.getElementById('dateFrom').value=UI.dateFrom;
   document.getElementById('dateTo').value=UI.dateTo;
-  // Mark This Month pill as active
   document.querySelectorAll('.qf-btn').forEach(b=>b.classList.toggle('active',b.dataset.qf==='this-month'));
   if(STATE.lastUpdated)document.getElementById('lastUpdatedBadge').textContent='Updated '+fmtDate(STATE.lastUpdated);
   updateTabPills();
@@ -436,15 +388,15 @@ function switchTab(tab){
   renderAll();
 }
 
-// Period buttons = chart grouping only, date range stays as-is
+// Period buttons = CHART GROUPING ONLY. Date range is NOT changed.
 function setPeriod(p){
   UI.period=p;UI.page=1;
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.period===p));
   document.getElementById('trendBadge').textContent=p==='daily'?'Daily':p==='weekly'?'Weekly':'Monthly';
-  renderAll();
+  renderAll(); // re-render with same date range, new grouping
 }
 
-// Manual date override — clears quick filter highlight
+// Manual date override — clears quick pill highlight
 function applyDateRange(){
   UI.dateFrom=document.getElementById('dateFrom').value;
   UI.dateTo=document.getElementById('dateTo').value;
