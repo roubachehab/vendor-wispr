@@ -148,6 +148,9 @@ td.primary{color:var(--text-primary);font-weight:500;}
 .token-zone{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px 24px;}
 .token-label{font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:6px;}
 .token-desc{font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.5;}
+.token-status{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:12px;padding:8px 12px;border-radius:var(--radius-sm);}
+.token-status.saved{background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,0.2);}
+.token-status.empty{background:var(--bg-input);color:var(--text-muted);border:1px solid var(--border);}
 .token-input{width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;font-family:var(--font-mono);font-size:12px;color:var(--text-primary);outline:none;margin-bottom:10px;}
 .token-input:focus{border-color:var(--accent-all);}
 .drawer-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:20px;}
@@ -287,27 +290,28 @@ td.primary{color:var(--text-primary);font-weight:500;}
     <div class="drawer-desc">Upload a new Wispr export to merge with existing history, or a new roster to update team assignments. Data is saved to GitHub so all team members see the same view.</div>
     <div class="drawer-grid">
       <div>
-        <div id="wispDropZone" class="upload-zone" onclick="document.getElementById('wispFileInput').click()" ondragover="handleDragOver(event,'wispDropZone')" ondragleave="handleDragLeave('wispDropZone')" ondrop="handleDrop(event,'wisp')">
+        <div id="wispDropZone" class="upload-zone" onclick="document.getElementById(&quot;wispFileInput&quot;).click()" ondragover="handleDragOver(event,&quot;wispDropZone&quot;)" ondragleave="handleDragLeave(&quot;wispDropZone&quot;)" ondrop="handleDrop(event,&quot;wisp&quot;)">
           <div class="upload-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3v10M6 7l4-4 4 4M3 15h14"/></svg></div>
           <div class="upload-zone-title">Wispr Usage Export</div>
           <div class="upload-zone-sub" id="wispZoneSub">Drop CSV here or click to browse</div>
           <span class="upload-zone-hint">Name (email@gustocare.com), date columns…</span>
         </div>
-        <input type="file" id="wispFileInput" accept=".csv" style="display:none" onchange="handleFileSelect(event,'wisp')">
+        <input type="file" id="wispFileInput" accept=".csv" style="display:none" onchange="handleFileSelect(event,&quot;wisp&quot;)">
       </div>
       <div>
-        <div id="rosterDropZone" class="upload-zone" onclick="document.getElementById('rosterFileInput').click()" ondragover="handleDragOver(event,'rosterDropZone')" ondragleave="handleDragLeave('rosterDropZone')" ondrop="handleDrop(event,'roster')">
+        <div id="rosterDropZone" class="upload-zone" onclick="document.getElementById(&quot;rosterFileInput&quot;).click()" ondragover="handleDragOver(event,&quot;rosterDropZone&quot;)" ondragleave="handleDragLeave(&quot;rosterDropZone&quot;)" ondrop="handleDrop(event,&quot;roster&quot;)">
           <div class="upload-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="14" height="16" rx="2"/><path d="M7 7h6M7 11h6M7 15h3"/></svg></div>
           <div class="upload-zone-title">Vendor Roster</div>
           <div class="upload-zone-sub" id="rosterZoneSub">Drop CSV here or click to browse</div>
           <span class="upload-zone-hint">Name, Email, Team</span>
         </div>
-        <input type="file" id="rosterFileInput" accept=".csv" style="display:none" onchange="handleFileSelect(event,'roster')">
+        <input type="file" id="rosterFileInput" accept=".csv" style="display:none" onchange="handleFileSelect(event,&quot;roster&quot;)">
       </div>
       <div class="token-zone">
         <div class="token-label">GitHub Personal Access Token</div>
-        <div class="token-desc">Required once to save data for all team members. Create a token with <code style="font-family:var(--font-mono);background:var(--bg-input);padding:1px 5px;border-radius:3px">repo</code> scope in GitHub → Settings → Developer settings → Personal access tokens.</div>
-        <input type="password" class="token-input" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" oninput="saveToken()">
+        <div class="token-desc">Required once per browser to save data for all team members. Create a token with <code style="font-family:var(--font-mono);background:var(--bg-input);padding:1px 5px;border-radius:3px">repo</code> scope in GitHub → Settings → Developer settings → Personal access tokens.</div>
+        <div class="token-status" id="tokenStatus"><span>No token saved</span></div>
+        <input type="password" class="token-input" id="githubToken" placeholder="Paste token to update…" oninput="saveToken()">
         <div style="font-size:11px;color:var(--text-muted)">Saved in your browser only. Never committed to the repo.</div>
       </div>
     </div>
@@ -333,10 +337,9 @@ async function boot(){
   try{
     const url=`https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${DATA_PATH}?t=${Date.now()}`;
     const res=await fetch(url);
-    if(res.ok){const data=await res.json();applyData(data);toast('Dashboard loaded','success');}
+    if(res.ok){const data=await res.json();if(data&&!data.placeholder)applyData(data);else{document.getElementById('emptyState').style.display='';document.getElementById('dashboard').style.display='none';}}
     else{document.getElementById('emptyState').style.display='';document.getElementById('dashboard').style.display='none';}
   }catch(e){document.getElementById('emptyState').style.display='';document.getElementById('dashboard').style.display='none';}
-  const saved=localStorage.getItem('gh_token');if(saved)document.getElementById('githubToken').value=saved;
   setLoading(false);
 }
 
@@ -621,17 +624,54 @@ function parseRoster(rows){
 }
 
 function checkPublishReady(){
-  const t=document.getElementById('githubToken').value.trim();
-  document.getElementById('publishBtn').disabled=!(pendingWisp||pendingRoster);
+  const t=document.getElementById('githubToken').value.trim()||localStorage.getItem('gh_token')||'';
+  const hasToken=t.length>10;
+  const hasFile=!!(pendingWisp||pendingRoster);
+  document.getElementById('publishBtn').disabled=!(hasToken&&hasFile);
 }
 
 function saveToken(){
-  localStorage.setItem('gh_token',document.getElementById('githubToken').value.trim());
+  const t=document.getElementById('githubToken').value.trim();
+  if(t){localStorage.setItem('gh_token',t);}
+  updateTokenStatus();
   checkPublishReady();
 }
 
+function updateTokenStatus(){
+  const saved=localStorage.getItem('gh_token')||'';
+  const input=document.getElementById('githubToken').value.trim();
+  const active=input||saved;
+  const el=document.getElementById('tokenStatus');
+  if(active&&active.length>10){
+    el.className='token-status saved';
+    el.innerHTML=`<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Token saved in this browser`;
+  }else{
+    el.className='token-status empty';
+    el.innerHTML='No token saved — paste your token below';
+  }
+}
+
+function openDrawer(){
+  // Restore token from localStorage each time drawer opens
+  const saved=localStorage.getItem('gh_token')||'';
+  const input=document.getElementById('githubToken');
+  if(saved&&!input.value)input.value=saved;
+  updateTokenStatus();
+  checkPublishReady();
+  document.getElementById('updateDrawer').classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
+}
+
+function closeDrawer(){
+  document.getElementById('updateDrawer').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('open');
+}
+
+function setLoading(on,msg){document.getElementById('loadingOverlay').classList.toggle('active',on);if(msg)document.getElementById('loadingMsg').textContent=msg;}
+function toast(msg,type='info'){const c=document.getElementById('toastContainer'),d=document.createElement('div');d.className=`toast ${type}`;d.textContent=msg;c.appendChild(d);setTimeout(()=>d.remove(),3500);}
+
 async function publishData(){
-  const token=document.getElementById('githubToken').value.trim();
+  const token=(document.getElementById('githubToken').value.trim()||localStorage.getItem('gh_token')||'').trim();
   if(!token){toast('GitHub token required to publish','error');return;}
   setLoading(true,'Merging and saving data…');
   try{
@@ -660,16 +700,14 @@ async function publishData(){
     if(sha)body.sha=sha;
     const res=await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_PATH}`,{method:'PUT',headers:{Authorization:`token ${token}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify(body)});
     if(!res.ok){const err=await res.json();throw new Error(err.message||'GitHub API error');}
+    // Save token on successful publish
+    localStorage.setItem('gh_token',token);
     applyData(payload);pendingWisp=null;pendingRoster=null;
     closeDrawer();toast('Data saved and published!','success');
   }catch(e){toast('Error: '+e.message,'error');}
   setLoading(false);
 }
 
-function openDrawer(){document.getElementById('updateDrawer').classList.add('open');document.getElementById('drawerOverlay').classList.add('open');}
-function closeDrawer(){document.getElementById('updateDrawer').classList.remove('open');document.getElementById('drawerOverlay').classList.remove('open');}
-function setLoading(on,msg){document.getElementById('loadingOverlay').classList.toggle('active',on);if(msg)document.getElementById('loadingMsg').textContent=msg;}
-function toast(msg,type='info'){const c=document.getElementById('toastContainer'),d=document.createElement('div');d.className=`toast ${type}`;d.textContent=msg;c.appendChild(d);setTimeout(()=>d.remove(),3500);}
 document.addEventListener('DOMContentLoaded',boot);
 </script>
 </body>
