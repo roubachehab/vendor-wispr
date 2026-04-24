@@ -114,6 +114,31 @@ thead tr{border-bottom:1px solid var(--border);}
 th{padding:11px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;white-space:nowrap;cursor:pointer;user-select:none;background:var(--bg-card);}
 th:hover{color:var(--text-secondary);}
 th.sorted{color:var(--text-primary);}
+/* Column headers with tooltips */
+th[data-tip]{position:relative;}
+th[data-tip]::after{
+  content:attr(data-tip);
+  position:absolute;
+  top:calc(100% + 4px);
+  left:50%;
+  transform:translateX(-50%);
+  background:#0f1117;
+  border:1px solid var(--border-strong);
+  color:var(--text-secondary);
+  font-size:11px;
+  font-weight:400;
+  text-transform:none;
+  letter-spacing:0;
+  padding:6px 10px;
+  border-radius:var(--radius-sm);
+  white-space:nowrap;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.15s;
+  box-shadow:var(--shadow-elevated);
+  z-index:50;
+}
+th[data-tip]:hover::after{opacity:1;}
 tbody tr{border-bottom:1px solid var(--border);transition:background 0.1s;}
 tbody tr:last-child{border-bottom:none;}
 tbody tr:hover{background:var(--bg-card-hover);}
@@ -126,15 +151,12 @@ td.primary{color:var(--text-primary);font-weight:500;}
 .team-badge.tp{background:var(--accent-tp-dim);color:var(--accent-tp);}
 .team-badge.tu{background:var(--accent-tu-dim);color:var(--accent-tu);}
 .team-badge.un{background:var(--accent-un-dim);color:var(--accent-un);}
-
 /* Usage badge — tooltip on hover */
 .usage-badge{display:inline-flex;align-items:center;font-size:12px;font-weight:600;padding:3px 9px;border-radius:20px;font-family:var(--font-mono);white-space:nowrap;cursor:default;position:relative;}
 .usage-high{background:rgba(34,197,94,0.12);color:#22c55e;}
 .usage-medium{background:rgba(10,128,128,0.15);color:#0A8080;}
 .usage-low{background:rgba(245,158,11,0.12);color:#f59e0b;}
 .usage-none{background:var(--bg-input);color:var(--text-muted);}
-
-/* Tooltip */
 .usage-badge::after{
   content:attr(data-tooltip);
   position:absolute;
@@ -157,15 +179,11 @@ td.primary{color:var(--text-primary);font-weight:500;}
   z-index:50;
 }
 .usage-badge:hover::after{opacity:1;}
-
 .trend-indicator{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;font-family:var(--font-mono);padding:2px 8px;border-radius:20px;}
 .trend-up{background:rgba(34,197,94,0.12);color:#22c55e;}
 .trend-down{background:rgba(239,68,68,0.12);color:#ef4444;}
 .trend-flat{background:var(--bg-input);color:var(--text-muted);}
 .td-mono{font-family:var(--font-mono);font-size:var(--table-fs);color:var(--text-secondary);}
-.status-dot{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0;}
-.status-dot.active{background:var(--green);}
-.status-dot.inactive{background:var(--text-dim);}
 .pagination{padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--text-muted);}
 .page-btns{display:flex;gap:4px;}
 .page-btn{padding:5px 10px;border-radius:var(--radius-sm);background:none;border:1px solid var(--border-strong);color:var(--text-secondary);font-size:12px;font-family:var(--font-body);cursor:pointer;transition:all 0.1s;}
@@ -325,12 +343,12 @@ td.primary{color:var(--text-primary);font-weight:500;}
             <thead><tr>
               <th>Agent</th>
               <th>Team</th>
-              <th>Usage</th>
+              <th data-tip="Based on avg words/day over all days in the period. High ≥500 · Medium 150–499 · Low 1–149 · None 0">Usage</th>
               <th class="sorted">Words ↓</th>
-              <th>Avg / Day</th>
-              <th>7d Trend</th>
-              <th>Peak Day</th>
-              <th>Days Since Last Active</th>
+              <th data-tip="Average words on days the agent was active (excludes zero days)">Avg / Day</th>
+              <th data-tip="Last 7 days vs prior 7 days — based on all dates in dataset">7d Trend</th>
+              <th data-tip="Highest single-day word count in the selected period">Peak Day</th>
+              <th data-tip="Days since the agent last dictated anything">Days Since Last Active</th>
             </tr></thead>
             <tbody id="tableBody"><tr><td colspan="8" class="no-rows">Loading…</td></tr></tbody>
           </table>
@@ -458,13 +476,7 @@ function deltaClass(p){if(p>0)return'up';if(p<0)return'down';return'flat';}
 function deltaText(p){if(p===null||isNaN(p))return'—';return(p>=0?'+':'')+p.toFixed(1)+'%';}
 function getAccentColor(){return BRAND[UI.activeTab]||BRAND.all;}
 
-// ── Usage level — based on avg words/day over ALL days (total ÷ period days) ──
-// Thresholds derived from actual data distribution (2-month export, 596 agents)
-// High ≥500: top 14% — Wispr is part of daily workflow
-// Medium 150–499: 10% — regular use, not yet habitual
-// Low 1–149: 65% — sporadic use
-// None 0: 11% — no usage in period
-function getUsageLevel(totalWords, numDays){
+function getUsageLevel(totalWords,numDays){
   if(numDays===0)return'None';
   const avg=totalWords/numDays;
   if(avg>=500)return'High';
@@ -478,7 +490,6 @@ function usageClass(level){
   if(level==='Low')return'usage-low';
   return'usage-none';
 }
-// Tooltip text shown on hover
 const USAGE_TOOLTIPS={
   'High':'≥ 500 avg words/day — daily workflow',
   'Medium':'150–499 avg words/day — regular use',
@@ -603,7 +614,6 @@ function buildRows(agents,dates){
   let rows=agents.map(a=>{
     const words=totalWordsInPeriod(a,dates);
     const activeDays=dates.filter(d=>(a.daily[d]||0)>0).length;
-    // avgDay for display = avg on active days only
     const avgDay=activeDays>0?Math.round(words/activeDays):0;
     let peakDay=0;
     dates.forEach(d=>{const v=a.daily[d]||0;if(v>peakDay)peakDay=v;});
@@ -615,7 +625,6 @@ function buildRows(agents,dates){
     let trendPct=null,trendDir='flat';
     if(prior7>0){trendPct=((curr7-prior7)/prior7)*100;trendDir=trendPct>5?'up':trendPct<-5?'down':'flat';}
     else if(curr7>0){trendDir='up';trendPct=100;}
-    // Usage level = avg over ALL days in period (total ÷ numDays) — reflects real adoption
     const usageLevel=getUsageLevel(words,dates.length);
     return{...a,words,activeDays,avgDay,peakDay,daysSince,trendPct,trendDir,usageLevel,teamLabel:tl[a.team]||a.team};
   });
