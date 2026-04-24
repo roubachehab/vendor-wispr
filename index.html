@@ -13,7 +13,8 @@
   --bg-base:#0f1117;--bg-surface:#171b26;--bg-card:#1e2333;--bg-card-hover:#242a3d;--bg-input:#252b3b;
   --border:rgba(255,255,255,0.07);--border-strong:rgba(255,255,255,0.14);
   --text-primary:#f0f2f8;--text-secondary:#8892a4;--text-muted:#525c6d;--text-inverse:#0f1117;
-  --accent-all:#2dd4bf;--accent-all-dim:rgba(45,212,191,0.12);
+  /* Gusto brand teal */
+  --accent-all:#0A8080;--accent-all-dim:rgba(10,128,128,0.15);
   --accent-tp:#818cf8;--accent-tp-dim:rgba(129,140,248,0.12);
   --accent-tu:#f97316;--accent-tu-dim:rgba(249,115,22,0.12);
   --accent-un:#64748b;--accent-un-dim:rgba(100,116,139,0.12);
@@ -31,7 +32,7 @@ body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-pri
 .app-shell{display:flex;flex-direction:column;min-height:100vh;}
 .header{background:var(--bg-surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px);}
 .header-brand{display:flex;align-items:center;gap:12px;}
-.brand-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--accent-all),#0891b2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--text-inverse);letter-spacing:-0.5px;flex-shrink:0;}
+.brand-mark{width:32px;height:32px;background:linear-gradient(135deg,#0A8080,#065f5f);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#e0f7f7;letter-spacing:-0.5px;flex-shrink:0;}
 .header-title{font-family:var(--font-heading);font-size:17px;font-weight:600;color:var(--text-primary);letter-spacing:-0.2px;}
 .header-divider{font-size:15px;color:var(--text-muted);margin:0 2px;}
 .header-sub{font-size:12px;color:var(--text-muted);font-weight:400;}
@@ -40,10 +41,10 @@ body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-pri
 .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;border:none;text-decoration:none;}
 .btn-ghost{background:transparent;color:var(--text-secondary);border:1px solid var(--border-strong);}
 .btn-ghost:hover{background:var(--bg-card-hover);color:var(--text-primary);}
-.btn-primary{background:var(--accent-all);color:var(--text-inverse);font-weight:600;}
-.btn-primary:hover{filter:brightness(1.1);}
+.btn-primary{background:#0A8080;color:#e0f7f7;font-weight:600;}
+.btn-primary:hover{filter:brightness(1.15);}
 .btn svg{width:14px;height:14px;flex-shrink:0;}
-.tab-bar{background:var(--bg-surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:flex-end;gap:0;overflow-x:auto;}
+.tab-bar{background:var(--bg-surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:flex-end;overflow-x:auto;}
 .tab-bar::-webkit-scrollbar{display:none;}
 .tab-item{display:flex;align-items:center;gap:8px;padding:14px 20px 12px;border-bottom:2px solid transparent;color:var(--text-secondary);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.15s;user-select:none;background:none;border-left:none;border-right:none;border-top:none;font-family:var(--font-body);}
 .tab-item:hover{color:var(--text-primary);}
@@ -70,7 +71,7 @@ body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-pri
 .date-sep{color:var(--text-muted);}
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px;}
 .kpi-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-card);transition:border-color 0.2s,box-shadow 0.2s;position:relative;overflow:hidden;}
-.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--tab-accent);opacity:0.6;}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--tab-accent);opacity:0.9;}
 .kpi-card:hover{border-color:var(--border-strong);box-shadow:var(--shadow-elevated);}
 .kpi-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;}
 .kpi-value{font-family:var(--font-heading);font-size:32px;font-weight:700;color:var(--text-primary);line-height:1;margin-bottom:8px;letter-spacing:-1px;}
@@ -139,7 +140,7 @@ td.primary{color:var(--text-primary);font-weight:500;}
 .drawer-desc{font-size:13px;color:var(--text-secondary);margin-bottom:24px;line-height:1.6;}
 .drawer-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
 .upload-zone{border:1.5px dashed var(--border-strong);border-radius:var(--radius-lg);padding:28px 24px;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--bg-card);}
-.upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent-all);background:var(--accent-all-dim);}
+.upload-zone:hover,.upload-zone.drag-over{border-color:#0A8080;background:rgba(10,128,128,0.08);}
 .upload-zone.done{border-color:var(--green);background:var(--green-dim);cursor:default;}
 .upload-icon{width:40px;height:40px;background:var(--bg-input);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:var(--text-secondary);}
 .upload-zone.done .upload-icon{background:var(--green-dim);color:var(--green);}
@@ -153,13 +154,13 @@ td.primary{color:var(--text-primary);font-weight:500;}
 .token-status.saved{background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,0.2);}
 .token-status.empty{background:var(--bg-input);color:var(--text-muted);border:1px solid var(--border);}
 .token-input{width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;font-family:var(--font-mono);font-size:12px;color:var(--text-primary);outline:none;margin-bottom:10px;}
-.token-input:focus{border-color:var(--accent-all);}
+.token-input:focus{border-color:#0A8080;}
 .drawer-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:20px;}
 .toast-container{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:300;pointer-events:none;}
 .toast{background:var(--bg-surface);border:1px solid var(--border-strong);border-radius:var(--radius-md);padding:12px 16px;font-size:13px;color:var(--text-primary);box-shadow:var(--shadow-elevated);display:flex;align-items:center;gap:10px;animation:toastIn 0.25s ease forwards;pointer-events:auto;max-width:320px;}
 .toast.success{border-left:3px solid var(--green);}
 .toast.error{border-left:3px solid var(--red);}
-.toast.info{border-left:3px solid var(--accent-all);}
+.toast.info{border-left:3px solid #0A8080;}
 @keyframes toastIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 32px;text-align:center;}
 .empty-icon{font-size:48px;margin-bottom:16px;opacity:0.4;}
@@ -168,7 +169,7 @@ td.primary{color:var(--text-primary);font-weight:500;}
 .loading-overlay{position:fixed;inset:0;background:rgba(15,17,23,0.85);display:flex;align-items:center;justify-content:center;z-index:400;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity 0.2s;}
 .loading-overlay.active{opacity:1;pointer-events:auto;}
 .loading-card{background:var(--bg-surface);border:1px solid var(--border-strong);border-radius:var(--radius-xl);padding:32px 40px;text-align:center;box-shadow:var(--shadow-elevated);}
-.loading-spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent-all);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 16px;}
+.loading-spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:#0A8080;border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 16px;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .loading-msg{font-size:14px;color:var(--text-secondary);}
 .no-rows{padding:48px 24px;text-align:center;font-size:13px;color:var(--text-muted);}
@@ -236,52 +237,30 @@ td.primary{color:var(--text-primary);font-weight:500;}
       <div class="kpi-card"><div class="kpi-label">MTD Total</div><div class="kpi-value" id="kpi-mtd">—</div><div class="kpi-sub"><span class="delta flat" id="kpi-mtd-delta">—</span><span>vs same period last month</span></div></div>
     </div>
     <div class="charts-grid">
-      <div class="chart-card">
-        <div class="chart-header"><div><div class="chart-title">Usage Trend</div><div class="chart-subtitle">Words dictated over time</div></div><span class="chart-badge" id="trendBadge">Daily</span></div>
-        <div class="canvas-wrap" style="height:220px"><canvas id="trendChart"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-header"><div><div class="chart-title">Agent Status</div><div class="chart-subtitle">Active vs inactive in period</div></div></div>
-        <div class="canvas-wrap" style="height:180px"><canvas id="statusChart"></canvas></div>
-        <div id="statusLegend" style="margin-top:16px;display:flex;gap:16px;justify-content:center;font-size:12px;color:var(--text-secondary);"></div>
-      </div>
+      <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Usage Trend</div><div class="chart-subtitle">Words dictated over time</div></div><span class="chart-badge" id="trendBadge">Daily</span></div><div class="canvas-wrap" style="height:220px"><canvas id="trendChart"></canvas></div></div>
+      <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Agent Status</div><div class="chart-subtitle">Active vs inactive in period</div></div></div><div class="canvas-wrap" style="height:180px"><canvas id="statusChart"></canvas></div><div id="statusLegend" style="margin-top:16px;display:flex;gap:16px;justify-content:center;font-size:12px;color:var(--text-secondary);"></div></div>
     </div>
     <div class="charts-grid-bottom">
-      <div class="chart-card">
-        <div class="chart-header"><div><div class="chart-title">Week-over-Week</div><div class="chart-subtitle">Total words — last 8 weeks</div></div><span class="chart-badge">8 weeks</span></div>
-        <div class="canvas-wrap" style="height:200px"><canvas id="wowChart"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-header"><div><div class="chart-title">Top Performers</div><div class="chart-subtitle">Highest usage in period</div></div><span class="chart-badge">Top 10</span></div>
-        <div class="canvas-wrap" style="height:200px"><canvas id="topChart"></canvas></div>
-      </div>
+      <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Week-over-Week</div><div class="chart-subtitle">Total words — last 8 weeks</div></div><span class="chart-badge">8 weeks</span></div><div class="canvas-wrap" style="height:200px"><canvas id="wowChart"></canvas></div></div>
+      <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Top Performers</div><div class="chart-subtitle">Highest usage in period</div></div><span class="chart-badge">Top 10</span></div><div class="canvas-wrap" style="height:200px"><canvas id="topChart"></canvas></div></div>
     </div>
     <div class="table-section">
       <div class="table-card">
         <div class="table-header">
           <div><div class="table-title">Agent Breakdown</div><div class="table-subtitle" id="tableSubtitle">All agents in selected period</div></div>
           <div class="table-controls">
-            <div class="search-wrap">
-              <svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10.5 10.5 3 3"/></svg>
-              <input type="search" class="search-input" id="searchInput" placeholder="Search agents…" oninput="filterTable()">
-            </div>
+            <div class="search-wrap"><svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10.5 10.5 3 3"/></svg><input type="search" class="search-input" id="searchInput" placeholder="Search agents…" oninput="filterTable()"></div>
             <select class="select-input" id="statusFilter" onchange="filterTable()"><option value="all">All statuses</option><option value="active">Active only</option><option value="inactive">Inactive only</option></select>
             <select class="select-input" id="sortSelect" onchange="filterTable()"><option value="words-desc">Words ↓</option><option value="words-asc">Words ↑</option><option value="name-asc">Name A–Z</option><option value="active-days-desc">Active days ↓</option></select>
-            <button class="btn btn-ghost" onclick="downloadCSV()" title="Download agent breakdown as CSV">
+            <button class="btn btn-ghost" onclick="downloadCSV()">
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3M2 12h12"/></svg>
               Export CSV
             </button>
           </div>
         </div>
         <div class="table-scroll">
-          <table id="agentTable">
-            <thead><tr>
-              <th>Agent</th><th>Team</th><th>Status</th>
-              <th class="sorted">Words Dictated <span class="sort-arrow">↓</span></th>
-              <th>Active Days</th><th>Avg / Day</th><th>Last Active</th><th>Usage %</th>
-            </tr></thead>
-            <tbody id="tableBody"><tr><td colspan="8" class="no-rows">Loading…</td></tr></tbody>
-          </table>
+          <table><thead><tr><th>Agent</th><th>Team</th><th>Status</th><th class="sorted">Words Dictated ↓</th><th>Active Days</th><th>Avg / Day</th><th>Last Active</th><th>Usage %</th></tr></thead>
+          <tbody id="tableBody"><tr><td colspan="8" class="no-rows">Loading…</td></tr></tbody></table>
         </div>
         <div class="pagination"><span id="paginationInfo"></span><div class="page-btns" id="pageButtons"></div></div>
       </div>
@@ -295,38 +274,13 @@ td.primary{color:var(--text-primary);font-weight:500;}
     <div class="drawer-title">Update Dashboard Data</div>
     <div class="drawer-desc">Upload a new Wispr export to merge with existing history, or a new roster to update team assignments. Data is saved to GitHub so all team members see the same view.</div>
     <div class="drawer-grid">
-      <div>
-        <div id="wispDropZone" class="upload-zone" onclick="document.getElementById(&quot;wispFileInput&quot;).click()" ondragover="handleDragOver(event,&quot;wispDropZone&quot;)" ondragleave="handleDragLeave(&quot;wispDropZone&quot;)" ondrop="handleDrop(event,&quot;wisp&quot;)">
-          <div class="upload-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3v10M6 7l4-4 4 4M3 15h14"/></svg></div>
-          <div class="upload-zone-title">Wispr Usage Export</div>
-          <div class="upload-zone-sub" id="wispZoneSub">Drop CSV here or click to browse</div>
-          <span class="upload-zone-hint">Name (email@gustocare.com), date columns…</span>
-        </div>
-        <input type="file" id="wispFileInput" accept=".csv" style="display:none" onchange="handleFileSelect(event,&quot;wisp&quot;)">
-      </div>
-      <div>
-        <div id="rosterDropZone" class="upload-zone" onclick="document.getElementById(&quot;rosterFileInput&quot;).click()" ondragover="handleDragOver(event,&quot;rosterDropZone&quot;)" ondragleave="handleDragLeave(&quot;rosterDropZone&quot;)" ondrop="handleDrop(event,&quot;roster&quot;)">
-          <div class="upload-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="14" height="16" rx="2"/><path d="M7 7h6M7 11h6M7 15h3"/></svg></div>
-          <div class="upload-zone-title">Vendor Roster</div>
-          <div class="upload-zone-sub" id="rosterZoneSub">Drop CSV here or click to browse</div>
-          <span class="upload-zone-hint">Name, Email, Team</span>
-        </div>
-        <input type="file" id="rosterFileInput" accept=".csv" style="display:none" onchange="handleFileSelect(event,&quot;roster&quot;)">
-      </div>
-      <div class="token-zone">
-        <div class="token-label">GitHub Personal Access Token</div>
-        <div class="token-desc">Required once per browser to save data for all team members. Create a token with <code style="font-family:var(--font-mono);background:var(--bg-input);padding:1px 5px;border-radius:3px">repo</code> scope in GitHub → Settings → Developer settings → Personal access tokens.</div>
-        <div class="token-status" id="tokenStatus"><span>No token saved</span></div>
-        <input type="password" class="token-input" id="githubToken" placeholder="Paste token to update…" oninput="saveToken()">
-        <div style="font-size:11px;color:var(--text-muted)">Saved in your browser only. Never committed to the repo.</div>
-      </div>
+      <div><div id="wispDropZone" class="upload-zone" onclick="document.getElementById(&quot;wispFileInput&quot;).click()" ondragover="handleDragOver(event,&quot;wispDropZone&quot;)" ondragleave="handleDragLeave(&quot;wispDropZone&quot;)" ondrop="handleDrop(event,&quot;wisp&quot;)"><div class="upload-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3v10M6 7l4-4 4 4M3 15h14"/></svg></div><div class="upload-zone-title">Wispr Usage Export</div><div class="upload-zone-sub" id="wispZoneSub">Drop CSV here or click to browse</div><span class="upload-zone-hint">Name (email@gustocare.com), date columns…</span></div><input type="file" id="wispFileInput" accept=".csv" style="display:none" onchange="handleFileSelect(event,&quot;wisp&quot;)"></div>
+      <div><div id="rosterDropZone" class="upload-zone" onclick="document.getElementById(&quot;rosterFileInput&quot;).click()" ondragover="handleDragOver(event,&quot;rosterDropZone&quot;)" ondragleave="handleDragLeave(&quot;rosterDropZone&quot;)" ondrop="handleDrop(event,&quot;roster&quot;)"><div class="upload-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="14" height="16" rx="2"/><path d="M7 7h6M7 11h6M7 15h3"/></svg></div><div class="upload-zone-title">Vendor Roster</div><div class="upload-zone-sub" id="rosterZoneSub">Drop CSV here or click to browse</div><span class="upload-zone-hint">Name, Email, Team</span></div><input type="file" id="rosterFileInput" accept=".csv" style="display:none" onchange="handleFileSelect(event,&quot;roster&quot;)"></div>
+      <div class="token-zone"><div class="token-label">GitHub Personal Access Token</div><div class="token-desc">Required once per browser. Create a token with <code style="font-family:var(--font-mono);background:var(--bg-input);padding:1px 5px;border-radius:3px">repo</code> scope in GitHub → Settings → Developer settings → Personal access tokens.</div><div class="token-status" id="tokenStatus"><span>No token saved</span></div><input type="password" class="token-input" id="githubToken" placeholder="Paste token to update…" oninput="saveToken()"><div style="font-size:11px;color:var(--text-muted)">Saved in your browser only. Never committed to the repo.</div></div>
     </div>
     <div class="drawer-actions">
       <button class="btn btn-ghost" onclick="closeDrawer()">Cancel</button>
-      <button class="btn btn-primary" id="publishBtn" onclick="publishData()" disabled>
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3M2 12h12"/></svg>
-        Save &amp; Publish
-      </button>
+      <button class="btn btn-primary" id="publishBtn" onclick="publishData()" disabled><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3M2 12h12"/></svg>Save &amp; Publish</button>
     </div>
   </div>
 </div>
@@ -336,9 +290,7 @@ const REPO_OWNER='roubachehab',REPO_NAME='vendor-wispr',DATA_PATH='data/dashboar
 let STATE={agents:[],roster:{},allDates:[],lastUpdated:null};
 let UI={activeTab:'all',period:'daily',dateFrom:null,dateTo:null,searchQuery:'',statusFilter:'all',sortBy:'words-desc',page:1,pageSize:25};
 let CHARTS={trend:null,status:null,wow:null,top:null};
-let pendingWisp=null,pendingRoster=null;
-// Holds the full sorted+filtered rows for the current view (used by CSV export)
-let currentTableRows=[];
+let pendingWisp=null,pendingRoster=null,currentTableRows=[];
 
 async function boot(){
   setLoading(true,'Loading dashboard data…');
@@ -354,8 +306,7 @@ async function boot(){
 function applyData(data){
   STATE.agents=data.agents||[];STATE.roster=data.roster||{};STATE.allDates=data.allDates||[];STATE.lastUpdated=data.lastUpdated||null;
   if(!STATE.allDates.length)return;
-  const latest=STATE.allDates[STATE.allDates.length-1];
-  const latestD=new Date(latest),fromD=new Date(latestD);
+  const latest=STATE.allDates[STATE.allDates.length-1],latestD=new Date(latest),fromD=new Date(latestD);
   fromD.setDate(fromD.getDate()-29);
   const fromStr=fromD.toISOString().slice(0,10);
   UI.dateFrom=fromStr<STATE.allDates[0]?STATE.allDates[0]:fromStr;
@@ -390,12 +341,7 @@ function setPeriod(p){
   renderAll();
 }
 
-function applyDateRange(){
-  UI.dateFrom=document.getElementById('dateFrom').value;
-  UI.dateTo=document.getElementById('dateTo').value;
-  UI.page=1;renderAll();
-}
-
+function applyDateRange(){UI.dateFrom=document.getElementById('dateFrom').value;UI.dateTo=document.getElementById('dateTo').value;UI.page=1;renderAll();}
 function getAgentsForTab(){return UI.activeTab==='all'?STATE.agents:STATE.agents.filter(a=>a.team===UI.activeTab);}
 function getFilteredDates(){return STATE.allDates.filter(d=>d>=UI.dateFrom&&d<=UI.dateTo);}
 function totalWordsInPeriod(a,dates){return dates.reduce((s,d)=>s+(a.daily[d]||0),0);}
@@ -407,14 +353,8 @@ function deltaText(p){if(p===null||isNaN(p))return'—';return(p>=0?'+':'')+p.to
 
 function aggregateDates(dates){
   if(UI.period==='daily')return dates.map(d=>({label:d,dates:[d]}));
-  if(UI.period==='weekly'){
-    const map={};
-    dates.forEach(d=>{const dt=new Date(d),day=dt.getDay(),mon=new Date(dt);mon.setDate(dt.getDate()-(day===0?6:day-1));const key=mon.toISOString().slice(0,10);if(!map[key])map[key]={label:'W/'+key.slice(5),dates:[]};map[key].dates.push(d);});
-    return Object.values(map);
-  }
-  const map={};
-  dates.forEach(d=>{const key=d.slice(0,7);if(!map[key])map[key]={label:new Date(d).toLocaleDateString('en-US',{month:'short',year:'2-digit'}),dates:[]};map[key].dates.push(d);});
-  return Object.values(map);
+  if(UI.period==='weekly'){const map={};dates.forEach(d=>{const dt=new Date(d),day=dt.getDay(),mon=new Date(dt);mon.setDate(dt.getDate()-(day===0?6:day-1));const key=mon.toISOString().slice(0,10);if(!map[key])map[key]={label:'W/'+key.slice(5),dates:[]};map[key].dates.push(d);});return Object.values(map);}
+  const map={};dates.forEach(d=>{const key=d.slice(0,7);if(!map[key])map[key]={label:new Date(d).toLocaleDateString('en-US',{month:'short',year:'2-digit'}),dates:[]};map[key].dates.push(d);});return Object.values(map);
 }
 
 function renderAll(){
@@ -427,12 +367,9 @@ function renderAll(){
 function getCurrentAndPriorWeek(){
   const latest=new Date(UI.dateTo),day=latest.getDay(),monday=new Date(latest);
   monday.setDate(latest.getDate()-(day===0?6:day-1));
-  const priorMonday=new Date(monday);priorMonday.setDate(monday.getDate()-7);
-  const priorSunday=new Date(monday);priorSunday.setDate(monday.getDate()-1);
-  return{
-    currentWeek:STATE.allDates.filter(d=>d>=monday.toISOString().slice(0,10)&&d<=UI.dateTo),
-    priorWeek:STATE.allDates.filter(d=>d>=priorMonday.toISOString().slice(0,10)&&d<=priorSunday.toISOString().slice(0,10))
-  };
+  const pm=new Date(monday);pm.setDate(monday.getDate()-7);
+  const ps=new Date(monday);ps.setDate(monday.getDate()-1);
+  return{currentWeek:STATE.allDates.filter(d=>d>=monday.toISOString().slice(0,10)&&d<=UI.dateTo),priorWeek:STATE.allDates.filter(d=>d>=pm.toISOString().slice(0,10)&&d<=ps.toISOString().slice(0,10))};
 }
 
 function getMTDPeriods(){
@@ -440,11 +377,8 @@ function getMTDPeriods(){
   const mtdStart=new Date(latest.getFullYear(),latest.getMonth(),1).toISOString().slice(0,10);
   const lme=new Date(latest.getFullYear(),latest.getMonth(),0);
   const lms=new Date(lme.getFullYear(),lme.getMonth(),1);
-  const sameDay=new Date(lms);sameDay.setDate(latest.getDate());
-  return{
-    mtdCurrent:STATE.allDates.filter(d=>d>=mtdStart&&d<=UI.dateTo),
-    mtdPrior:STATE.allDates.filter(d=>d>=lms.toISOString().slice(0,10)&&d<=new Date(Math.min(sameDay,lme)).toISOString().slice(0,10))
-  };
+  const sd=new Date(lms);sd.setDate(latest.getDate());
+  return{mtdCurrent:STATE.allDates.filter(d=>d>=mtdStart&&d<=UI.dateTo),mtdPrior:STATE.allDates.filter(d=>d>=lms.toISOString().slice(0,10)&&d<=new Date(Math.min(sd,lme)).toISOString().slice(0,10))};
 }
 
 function getPriorPeriodDates(dates){
@@ -484,23 +418,15 @@ function renderKPIs(agents,dates){
   setDelta('kpi-mtd-delta',mtdPct);
 }
 
-function setKPI(key,value,pct){
-  document.getElementById('kpi-'+key).textContent=value;
-  setDelta('kpi-'+key+'-delta',pct);
-}
-function setDelta(id,pct){
-  const el=document.getElementById(id);if(!el)return;
-  el.className='delta '+deltaClass(pct);
-  el.textContent=deltaText(pct);
-}
-
-function getAccentColor(){const m={all:'#2dd4bf',tp:'#818cf8',tu:'#f97316',un:'#64748b'};return m[UI.activeTab]||'#2dd4bf';}
+function setKPI(key,value,pct){document.getElementById('kpi-'+key).textContent=value;setDelta('kpi-'+key+'-delta',pct);}
+function setDelta(id,pct){const el=document.getElementById(id);if(!el)return;el.className='delta '+deltaClass(pct);el.textContent=deltaText(pct);}
+function getAccentColor(){const m={all:'#0A8080',tp:'#818cf8',tu:'#f97316',un:'#64748b'};return m[UI.activeTab]||'#0A8080';}
 
 function renderTrendChart(agents,dates){
   const color=getAccentColor(),groups=aggregateDates(dates);
   const values=groups.map(g=>agents.reduce((s,a)=>s+totalWordsInPeriod(a,g.dates),0));
   if(CHARTS.trend)CHARTS.trend.destroy();
-  CHARTS.trend=new Chart(document.getElementById('trendChart'),{type:'line',data:{labels:groups.map(g=>g.label),datasets:[{data:values,borderColor:color,backgroundColor:color+'18',borderWidth:2,fill:true,tension:0.4,pointRadius:groups.length>60?0:3,pointBackgroundColor:color}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)+' words'}}},scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#525c6d',font:{size:11},maxTicksLimit:12}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#525c6d',font:{size:11},callback:v=>fmt(v)},beginAtZero:true}}}});
+  CHARTS.trend=new Chart(document.getElementById('trendChart'),{type:'line',data:{labels:groups.map(g=>g.label),datasets:[{data:values,borderColor:color,backgroundColor:color+'22',borderWidth:2,fill:true,tension:0.4,pointRadius:groups.length>60?0:3,pointBackgroundColor:color}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)+' words'}}},scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#525c6d',font:{size:11},maxTicksLimit:12}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#525c6d',font:{size:11},callback:v=>fmt(v)},beginAtZero:true}}}});
 }
 
 function renderStatusChart(agents,dates){
@@ -520,7 +446,7 @@ function renderWoWChart(agents){
     weeks.push({label:'W'+ws.toLocaleDateString('en-US',{month:'short',day:'numeric'}),total:agents.reduce((s,a)=>s+totalWordsInPeriod(a,wDates),0),isCurrent:i===0});
   }
   if(CHARTS.wow)CHARTS.wow.destroy();
-  CHARTS.wow=new Chart(document.getElementById('wowChart'),{type:'bar',data:{labels:weeks.map(w=>w.label),datasets:[{data:weeks.map(w=>w.total),backgroundColor:weeks.map(w=>w.isCurrent?color:color+'55'),borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)+' words'}}},scales:{x:{grid:{display:false},ticks:{color:'#525c6d',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#525c6d',font:{size:11},callback:v=>fmt(v)},beginAtZero:true}}}});
+  CHARTS.wow=new Chart(document.getElementById('wowChart'),{type:'bar',data:{labels:weeks.map(w=>w.label),datasets:[{data:weeks.map(w=>w.total),backgroundColor:weeks.map(w=>w.isCurrent?color:color+'66'),borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)+' words'}}},scales:{x:{grid:{display:false},ticks:{color:'#525c6d',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#525c6d',font:{size:11},callback:v=>fmt(v)},beginAtZero:true}}}});
 }
 
 function renderTopChart(agents,dates){
@@ -530,13 +456,7 @@ function renderTopChart(agents,dates){
   CHARTS.top=new Chart(document.getElementById('topChart'),{type:'bar',data:{labels:sorted.map(a=>a.name),datasets:[{data:sorted.map(a=>a.words),backgroundColor:color+'cc',borderRadius:3,borderSkipped:false}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)+' words'}}},scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#525c6d',font:{size:10},callback:v=>fmt(v)},beginAtZero:true},y:{grid:{display:false},ticks:{color:'#8892a4',font:{size:11}}}}}});
 }
 
-function filterTable(){
-  UI.searchQuery=document.getElementById('searchInput').value.toLowerCase();
-  UI.statusFilter=document.getElementById('statusFilter').value;
-  UI.sortBy=document.getElementById('sortSelect').value;
-  UI.page=1;
-  renderTable(getAgentsForTab(),getFilteredDates());
-}
+function filterTable(){UI.searchQuery=document.getElementById('searchInput').value.toLowerCase();UI.statusFilter=document.getElementById('statusFilter').value;UI.sortBy=document.getElementById('sortSelect').value;UI.page=1;renderTable(getAgentsForTab(),getFilteredDates());}
 
 function buildRows(agents,dates){
   const tl={tp:'Teleperformance',tu:'TaskUs',un:'Unassigned'};
@@ -545,39 +465,25 @@ function buildRows(agents,dates){
     const activeDays=dates.filter(d=>(a.daily[d]||0)>0).length;
     const avgDay=activeDays>0?Math.round(words/activeDays):0;
     const lastActive=[...dates].reverse().find(d=>(a.daily[d]||0)>0)||null;
-    const teamLabel=tl[a.team]||a.team;
-    return{...a,words,active,activeDays,avgDay,lastActive,teamLabel};
+    return{...a,words,active,activeDays,avgDay,lastActive,teamLabel:tl[a.team]||a.team};
   });
   if(UI.searchQuery)rows=rows.filter(r=>r.name.toLowerCase().includes(UI.searchQuery)||r.email.toLowerCase().includes(UI.searchQuery));
   if(UI.statusFilter==='active')rows=rows.filter(r=>r.active);
   if(UI.statusFilter==='inactive')rows=rows.filter(r=>!r.active);
   const[sk,sd]=UI.sortBy.split('-');
-  rows.sort((a,b)=>{
-    let av,bv;
-    if(sk==='words'){av=a.words;bv=b.words;}else if(sk==='name'){av=a.name;bv=b.name;}else{av=a.activeDays;bv=b.activeDays;}
-    if(typeof av==='string')return sd==='asc'?av.localeCompare(bv):bv.localeCompare(av);
-    return sd==='asc'?av-bv:bv-av;
-  });
+  rows.sort((a,b)=>{let av,bv;if(sk==='words'){av=a.words;bv=b.words;}else if(sk==='name'){av=a.name;bv=b.name;}else{av=a.activeDays;bv=b.activeDays;}if(typeof av==='string')return sd==='asc'?av.localeCompare(bv):bv.localeCompare(av);return sd==='asc'?av-bv:bv-av;});
   return rows;
 }
 
 function renderTable(agents,dates){
-  const rows=buildRows(agents,dates);
-  currentTableRows=rows; // save for CSV export
-  const maxWords=rows[0]?.words||1;
-  const total=rows.length,start=(UI.page-1)*UI.pageSize,pageRows=rows.slice(start,start+UI.pageSize);
+  const rows=buildRows(agents,dates);currentTableRows=rows;
+  const maxWords=rows[0]?.words||1,total=rows.length,start=(UI.page-1)*UI.pageSize,pageRows=rows.slice(start,start+UI.pageSize);
   const tbody=document.getElementById('tableBody');
   if(!pageRows.length){tbody.innerHTML='<tr><td colspan="8" class="no-rows">No agents match your filters</td></tr>';}
-  else{
-    tbody.innerHTML=pageRows.map(r=>{
-      const bp=Math.round((r.words/maxWords)*100);
-      return`<tr><td><div class="agent-cell"><span class="agent-name">${esc(r.name)}</span><span class="agent-email">${esc(r.email)}</span></div></td><td><span class="team-badge ${r.team}">${r.teamLabel}</span></td><td><span style="display:flex;align-items:center;gap:6px"><span class="status-dot ${r.active?'active':'inactive'}"></span><span style="font-size:12px">${r.active?'Active':'Inactive'}</span></span></td><td class="primary">${r.words>0?fmt(r.words):'—'}</td><td>${r.activeDays>0?r.activeDays+'d':'—'}</td><td>${r.avgDay>0?fmt(r.avgDay):'—'}</td><td style="font-family:var(--font-mono);font-size:11px">${r.lastActive||'—'}</td><td><div class="usage-bar-wrap"><div class="usage-bar-bg"><div class="usage-bar-fill" style="width:${bp}%"></div></div><span class="usage-val">${bp}%</span></div></td></tr>`;
-    }).join('');
-  }
+  else{tbody.innerHTML=pageRows.map(r=>{const bp=Math.round((r.words/maxWords)*100);return`<tr><td><div class="agent-cell"><span class="agent-name">${esc(r.name)}</span><span class="agent-email">${esc(r.email)}</span></div></td><td><span class="team-badge ${r.team}">${r.teamLabel}</span></td><td><span style="display:flex;align-items:center;gap:6px"><span class="status-dot ${r.active?'active':'inactive'}"></span><span style="font-size:12px">${r.active?'Active':'Inactive'}</span></span></td><td class="primary">${r.words>0?fmt(r.words):'—'}</td><td>${r.activeDays>0?r.activeDays+'d':'—'}</td><td>${r.avgDay>0?fmt(r.avgDay):'—'}</td><td style="font-family:var(--font-mono);font-size:11px">${r.lastActive||'—'}</td><td><div class="usage-bar-wrap"><div class="usage-bar-bg"><div class="usage-bar-fill" style="width:${bp}%"></div></div><span class="usage-val">${bp}%</span></div></td></tr>`;}).join('');}
   const tp=Math.ceil(total/UI.pageSize);
   document.getElementById('paginationInfo').textContent=`${Math.min(start+1,total)}–${Math.min(start+UI.pageSize,total)} of ${total} agents`;
-  let bh='';
-  for(let p=1;p<=Math.min(tp,7);p++)bh+=`<button class="page-btn${p===UI.page?' active':''}" onclick="goPage(${p})">${p}</button>`;
+  let bh='';for(let p=1;p<=Math.min(tp,7);p++)bh+=`<button class="page-btn${p===UI.page?' active':''}" onclick="goPage(${p})">${p}</button>`;
   if(tp>7)bh+=`<span style="padding:5px 4px;color:var(--text-muted)">…</span><button class="page-btn${tp===UI.page?' active':''}" onclick="goPage(${tp})">${tp}</button>`;
   document.getElementById('pageButtons').innerHTML=bh;
   document.getElementById('tableSubtitle').textContent=`${total} agents · ${dates.length} days · ${rows.filter(r=>r.active).length} active`;
@@ -585,129 +491,59 @@ function renderTable(agents,dates){
 
 function goPage(p){UI.page=p;renderTable(getAgentsForTab(),getFilteredDates());}
 
-// ── CSV Download ──
 function downloadCSV(){
   if(!currentTableRows.length){toast('No data to export','info');return;}
   const tabLabels={all:'All Agents',tp:'Teleperformance',tu:'TaskUs',un:'Unassigned'};
   const tabLabel=tabLabels[UI.activeTab]||UI.activeTab;
   const headers=['Name','Email','Team','Status','Words Dictated','Active Days','Avg Words/Day','Last Active','Usage %'];
   const maxWords=currentTableRows[0]?.words||1;
-  const csvRows=currentTableRows.map(r=>[
-    csvCell(r.name),
-    csvCell(r.email),
-    csvCell(r.teamLabel),
-    r.active?'Active':'Inactive',
-    r.words,
-    r.activeDays,
-    r.avgDay,
-    r.lastActive||'',
-    Math.round((r.words/maxWords)*100)+'%'
-  ]);
+  const csvRows=currentTableRows.map(r=>[csvCell(r.name),csvCell(r.email),csvCell(r.teamLabel),r.active?'Active':'Inactive',r.words,r.activeDays,r.avgDay,r.lastActive||'',Math.round((r.words/maxWords)*100)+'%']);
   const csv=[headers.join(','),...csvRows.map(r=>r.join(','))].join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;
-  const dateStr=new Date().toISOString().slice(0,10);
-  a.download=`wispr-agent-breakdown-${tabLabel.toLowerCase().replace(/\s+/g,'-')}-${dateStr}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  const a=document.createElement('a');a.href=url;
+  a.download=`wispr-agent-breakdown-${tabLabel.toLowerCase().replace(/\s+/g,'-')}-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
   toast(`Downloaded ${currentTableRows.length} agents (${tabLabel})`,'success');
 }
 
-function csvCell(v){
-  const s=String(v||'');
-  return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s;
-}
-
+function csvCell(v){const s=String(v||'');return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s;}
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-
 function handleDragOver(e,id){e.preventDefault();document.getElementById(id).classList.add('drag-over');}
 function handleDragLeave(id){document.getElementById(id).classList.remove('drag-over');}
 function handleDrop(e,type){e.preventDefault();const zi=type==='wisp'?'wispDropZone':'rosterDropZone';document.getElementById(zi).classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f)parseFile(f,type);}
 function handleFileSelect(e,type){const f=e.target.files[0];if(f)parseFile(f,type);}
-
-function parseFile(file,type){
-  Papa.parse(file,{header:true,skipEmptyLines:true,complete:r=>{type==='wisp'?parseWispr(r.data,r.meta.fields):parseRoster(r.data);},error:e=>toast('Parse error: '+e.message,'error')});
-}
+function parseFile(file,type){Papa.parse(file,{header:true,skipEmptyLines:true,complete:r=>{type==='wisp'?parseWispr(r.data,r.meta.fields):parseRoster(r.data);},error:e=>toast('Parse error: '+e.message,'error')});}
 
 function parseWispr(rows,fields){
   const dateCols=(fields||[]).slice(1).filter(f=>/^\d{4}-\d{2}-\d{2}$/.test(f.trim()));
   if(!dateCols.length){toast('No date columns found in CSV','error');return;}
   const agents=[];
-  rows.forEach(row=>{
-    const nf=(row[fields[0]]||row['Name']||'').trim();
-    const m=nf.match(/\(([^)]+@gustocare\.com)\)/i);
-    if(!m)return;
-    const email=m[1].toLowerCase().trim(),name=nf.replace(/\s*\([^)]*\)/,'').trim(),daily={};
-    dateCols.forEach(d=>{const v=parseFloat(row[d])||0;if(v>0)daily[d.trim()]=v;});
-    agents.push({email,name,daily});
-  });
+  rows.forEach(row=>{const nf=(row[fields[0]]||row['Name']||'').trim();const m=nf.match(/\(([^)]+@gustocare\.com)\)/i);if(!m)return;const email=m[1].toLowerCase().trim(),name=nf.replace(/\s*\([^)]*\)/,'').trim(),daily={};dateCols.forEach(d=>{const v=parseFloat(row[d])||0;if(v>0)daily[d.trim()]=v;});agents.push({email,name,daily});});
   pendingWisp={agents,dateCols:dateCols.map(d=>d.trim())};
   document.getElementById('wispDropZone').classList.add('done');
   document.getElementById('wispZoneSub').textContent=`✓ ${agents.length} @gustocare.com agents, ${dateCols.length} dates`;
-  toast(`Parsed ${agents.length} agents`,'success');
-  checkPublishReady();
+  toast(`Parsed ${agents.length} agents`,'success');checkPublishReady();
 }
 
 function parseRoster(rows){
   const roster={};
-  rows.forEach(row=>{
-    const email=(row['Email']||row['email']||'').toLowerCase().trim();
-    const team=(row['Team']||row['team']||'').trim();
-    if(!email||!email.includes('@gustocare.com'))return;
-    roster[email]=/teleperformance/i.test(team)?'tp':/taskus/i.test(team)?'tu':'un';
-  });
+  rows.forEach(row=>{const email=(row['Email']||row['email']||'').toLowerCase().trim();const team=(row['Team']||row['team']||'').trim();if(!email||!email.includes('@gustocare.com'))return;roster[email]=/teleperformance/i.test(team)?'tp':/taskus/i.test(team)?'tu':'un';});
   pendingRoster=roster;
   document.getElementById('rosterDropZone').classList.add('done');
   document.getElementById('rosterZoneSub').textContent=`✓ ${Object.keys(roster).length} agents mapped`;
-  toast(`Roster loaded: ${Object.keys(roster).length} agents`,'success');
-  checkPublishReady();
+  toast(`Roster loaded: ${Object.keys(roster).length} agents`,'success');checkPublishReady();
 }
 
-function checkPublishReady(){
-  const t=document.getElementById('githubToken').value.trim()||localStorage.getItem('gh_token')||'';
-  document.getElementById('publishBtn').disabled=!(t.length>10&&!!(pendingWisp||pendingRoster));
-}
-
-function saveToken(){
-  const t=document.getElementById('githubToken').value.trim();
-  if(t)localStorage.setItem('gh_token',t);
-  updateTokenStatus();
-  checkPublishReady();
-}
-
+function checkPublishReady(){const t=document.getElementById('githubToken').value.trim()||localStorage.getItem('gh_token')||'';document.getElementById('publishBtn').disabled=!(t.length>10&&!!(pendingWisp||pendingRoster));}
+function saveToken(){const t=document.getElementById('githubToken').value.trim();if(t)localStorage.setItem('gh_token',t);updateTokenStatus();checkPublishReady();}
 function updateTokenStatus(){
-  const saved=localStorage.getItem('gh_token')||'';
-  const input=document.getElementById('githubToken').value.trim();
-  const active=input||saved;
-  const el=document.getElementById('tokenStatus');
-  if(active&&active.length>10){
-    el.className='token-status saved';
-    el.innerHTML='<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Token saved in this browser';
-  }else{
-    el.className='token-status empty';
-    el.innerHTML='No token saved — paste your token below';
-  }
+  const saved=localStorage.getItem('gh_token')||'',input=document.getElementById('githubToken').value.trim(),active=input||saved,el=document.getElementById('tokenStatus');
+  if(active&&active.length>10){el.className='token-status saved';el.innerHTML='<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Token saved in this browser';}
+  else{el.className='token-status empty';el.innerHTML='No token saved — paste your token below';}
 }
-
-function openDrawer(){
-  const saved=localStorage.getItem('gh_token')||'';
-  const input=document.getElementById('githubToken');
-  if(saved&&!input.value)input.value=saved;
-  updateTokenStatus();
-  checkPublishReady();
-  document.getElementById('updateDrawer').classList.add('open');
-  document.getElementById('drawerOverlay').classList.add('open');
-}
-
-function closeDrawer(){
-  document.getElementById('updateDrawer').classList.remove('open');
-  document.getElementById('drawerOverlay').classList.remove('open');
-}
-
+function openDrawer(){const saved=localStorage.getItem('gh_token')||'',input=document.getElementById('githubToken');if(saved&&!input.value)input.value=saved;updateTokenStatus();checkPublishReady();document.getElementById('updateDrawer').classList.add('open');document.getElementById('drawerOverlay').classList.add('open');}
+function closeDrawer(){document.getElementById('updateDrawer').classList.remove('open');document.getElementById('drawerOverlay').classList.remove('open');}
 function setLoading(on,msg){document.getElementById('loadingOverlay').classList.toggle('active',on);if(msg)document.getElementById('loadingMsg').textContent=msg;}
 function toast(msg,type='info'){const c=document.getElementById('toastContainer'),d=document.createElement('div');d.className=`toast ${type}`;d.textContent=msg;c.appendChild(d);setTimeout(()=>d.remove(),3500);}
 
@@ -716,27 +552,18 @@ async function publishData(){
   if(!token){toast('GitHub token required to publish','error');return;}
   setLoading(true,'Merging and saving data…');
   try{
-    let merged=JSON.parse(JSON.stringify(STATE.agents));
-    let roster={...STATE.roster};
-    let allDates=new Set(STATE.allDates);
+    let merged=JSON.parse(JSON.stringify(STATE.agents)),roster={...STATE.roster},allDates=new Set(STATE.allDates);
     if(pendingRoster)Object.assign(roster,pendingRoster);
     if(pendingWisp){
       pendingWisp.dateCols.forEach(d=>allDates.add(d));
-      const map={};
-      merged.forEach(a=>{map[a.email]=a;});
-      pendingWisp.agents.forEach(na=>{
-        if(map[na.email]){Object.assign(map[na.email].daily,na.daily);map[na.email].name=na.name;}
-        else{map[na.email]={...na};merged.push(map[na.email]);}
-      });
+      const map={};merged.forEach(a=>{map[a.email]=a;});
+      pendingWisp.agents.forEach(na=>{if(map[na.email]){Object.assign(map[na.email].daily,na.daily);map[na.email].name=na.name;}else{map[na.email]={...na};merged.push(map[na.email]);}});
     }
     merged.forEach(a=>{a.team=roster[a.email]||'un';});
     const sortedDates=[...allDates].sort();
     const payload={agents:merged,roster,allDates:sortedDates,lastUpdated:new Date().toISOString()};
     let sha=null;
-    try{
-      const sr=await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_PATH}`,{headers:{Authorization:`token ${token}`,Accept:'application/vnd.github.v3+json'}});
-      if(sr.ok){const j=await sr.json();sha=j.sha;}
-    }catch(e){}
+    try{const sr=await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_PATH}`,{headers:{Authorization:`token ${token}`,Accept:'application/vnd.github.v3+json'}});if(sr.ok){const j=await sr.json();sha=j.sha;}}catch(e){}
     const body={message:`Update dashboard data — ${new Date().toLocaleDateString()}`,content:btoa(unescape(encodeURIComponent(JSON.stringify(payload))))};
     if(sha)body.sha=sha;
     const res=await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_PATH}`,{method:'PUT',headers:{Authorization:`token ${token}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify(body)});
