@@ -13,11 +13,11 @@
   --bg-base:#0f1117;--bg-surface:#171b26;--bg-card:#1e2333;--bg-card-hover:#242a3d;--bg-input:#252b3b;
   --border:rgba(255,255,255,0.07);--border-strong:rgba(255,255,255,0.14);
   --text-primary:#f0f2f8;--text-secondary:#8892a4;--text-muted:#525c6d;--text-inverse:#0f1117;
-  /* Gusto brand teal */
+  /* Brand colors */
   --accent-all:#0A8080;--accent-all-dim:rgba(10,128,128,0.15);
-  --accent-tp:#818cf8;--accent-tp-dim:rgba(129,140,248,0.12);
-  --accent-tu:#f97316;--accent-tu-dim:rgba(249,115,22,0.12);
-  --accent-un:#64748b;--accent-un-dim:rgba(100,116,139,0.12);
+  --accent-tp:#EF523C;--accent-tp-dim:rgba(239,82,60,0.13);
+  --accent-tu:#2BABAD;--accent-tu-dim:rgba(43,171,173,0.13);
+  --accent-un:#BABABC;--accent-un-dim:rgba(186,186,188,0.12);
   --green:#22c55e;--green-dim:rgba(34,197,94,0.12);
   --red:#ef4444;--red-dim:rgba(239,68,68,0.12);
   --radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-xl:20px;
@@ -35,7 +35,6 @@ body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-pri
 .brand-mark{width:32px;height:32px;background:linear-gradient(135deg,#0A8080,#065f5f);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#e0f7f7;letter-spacing:-0.5px;flex-shrink:0;}
 .header-title{font-family:var(--font-heading);font-size:17px;font-weight:600;color:var(--text-primary);letter-spacing:-0.2px;}
 .header-divider{font-size:15px;color:var(--text-muted);margin:0 2px;}
-.header-sub{font-size:12px;color:var(--text-muted);font-weight:400;}
 .header-actions{display:flex;align-items:center;gap:10px;}
 .last-updated{font-size:11px;color:var(--text-muted);font-family:var(--font-mono);padding:4px 10px;background:var(--bg-card);border-radius:var(--radius-sm);border:1px solid var(--border);}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;border:none;text-decoration:none;}
@@ -50,13 +49,18 @@ body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-pri
 .tab-item:hover{color:var(--text-primary);}
 .tab-item.active{color:var(--text-primary);border-bottom-color:var(--tab-accent);}
 .tab-pill{font-size:11px;font-weight:600;font-family:var(--font-mono);padding:2px 7px;border-radius:20px;background:var(--bg-card);color:var(--text-muted);}
-.tab-item.active .tab-pill{background:var(--accent-all-dim);color:var(--accent-all);}
+/* All Agents */
+.tab-item[data-tab="all"].active .tab-pill{background:var(--accent-all-dim);color:var(--accent-all);}
+.tab-item[data-tab="all"].active{border-bottom-color:var(--accent-all);}
+/* Teleperformance */
 .tab-item[data-tab="tp"].active .tab-pill{background:var(--accent-tp-dim);color:var(--accent-tp);}
+.tab-item[data-tab="tp"].active{border-bottom-color:var(--accent-tp);color:var(--accent-tp);}
+/* TaskUs */
 .tab-item[data-tab="tu"].active .tab-pill{background:var(--accent-tu-dim);color:var(--accent-tu);}
+.tab-item[data-tab="tu"].active{border-bottom-color:var(--accent-tu);color:var(--accent-tu);}
+/* Unassigned */
 .tab-item[data-tab="un"].active .tab-pill{background:var(--accent-un-dim);color:var(--accent-un);}
-.tab-item[data-tab="tp"].active{border-bottom-color:var(--accent-tp);}
-.tab-item[data-tab="tu"].active{border-bottom-color:var(--accent-tu);}
-.tab-item[data-tab="un"].active{border-bottom-color:var(--accent-un);}
+.tab-item[data-tab="un"].active{border-bottom-color:var(--accent-un);color:var(--accent-un);}
 .main{flex:1;padding:28px 32px;max-width:1400px;margin:0 auto;width:100%;}
 .controls-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:16px;flex-wrap:wrap;}
 .controls-left{display:flex;align-items:center;gap:8px;}
@@ -95,7 +99,7 @@ body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-pri
 .table-subtitle{font-size:11px;color:var(--text-muted);margin-top:2px;}
 .table-controls{display:flex;align-items:center;gap:8px;}
 .search-input{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 12px 7px 32px;font-family:var(--font-body);font-size:13px;color:var(--text-primary);outline:none;width:220px;transition:border-color 0.15s;}
-.search-input:focus{border-color:var(--accent-all);}
+.search-input:focus{border-color:var(--tab-accent);}
 .search-wrap{position:relative;}
 .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--text-muted);pointer-events:none;}
 .select-input{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 12px;font-family:var(--font-body);font-size:13px;color:var(--text-secondary);outline:none;cursor:pointer;}
@@ -124,8 +128,6 @@ td.primary{color:var(--text-primary);font-weight:500;}
 .usage-bar-bg{flex:1;height:4px;background:var(--bg-input);border-radius:2px;overflow:hidden;}
 .usage-bar-fill{height:100%;border-radius:2px;background:var(--tab-accent);transition:width 0.3s;}
 .usage-val{font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);min-width:44px;text-align:right;}
-.sparkline{display:inline-flex;align-items:flex-end;gap:2px;height:20px;}
-.spark-bar{width:3px;border-radius:1px;background:var(--tab-accent);}
 .pagination{padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--text-muted);}
 .page-btns{display:flex;gap:4px;}
 .page-btn{padding:5px 10px;border-radius:var(--radius-sm);background:none;border:1px solid var(--border);color:var(--text-secondary);font-size:12px;font-family:var(--font-body);cursor:pointer;transition:all 0.1s;}
@@ -252,10 +254,7 @@ td.primary{color:var(--text-primary);font-weight:500;}
             <div class="search-wrap"><svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10.5 10.5 3 3"/></svg><input type="search" class="search-input" id="searchInput" placeholder="Search agents…" oninput="filterTable()"></div>
             <select class="select-input" id="statusFilter" onchange="filterTable()"><option value="all">All statuses</option><option value="active">Active only</option><option value="inactive">Inactive only</option></select>
             <select class="select-input" id="sortSelect" onchange="filterTable()"><option value="words-desc">Words ↓</option><option value="words-asc">Words ↑</option><option value="name-asc">Name A–Z</option><option value="active-days-desc">Active days ↓</option></select>
-            <button class="btn btn-ghost" onclick="downloadCSV()">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3M2 12h12"/></svg>
-              Export CSV
-            </button>
+            <button class="btn btn-ghost" onclick="downloadCSV()"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3M2 12h12"/></svg>Export CSV</button>
           </div>
         </div>
         <div class="table-scroll">
@@ -291,6 +290,8 @@ let STATE={agents:[],roster:{},allDates:[],lastUpdated:null};
 let UI={activeTab:'all',period:'daily',dateFrom:null,dateTo:null,searchQuery:'',statusFilter:'all',sortBy:'words-desc',page:1,pageSize:25};
 let CHARTS={trend:null,status:null,wow:null,top:null};
 let pendingWisp=null,pendingRoster=null,currentTableRows=[];
+
+const BRAND={all:'#0A8080',tp:'#EF523C',tu:'#2BABAD',un:'#BABABC'};
 
 async function boot(){
   setLoading(true,'Loading dashboard data…');
@@ -329,8 +330,9 @@ function updateTabPills(){
 function switchTab(tab){
   UI.activeTab=tab;UI.page=1;
   document.querySelectorAll('.tab-item').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
-  const m={all:'--accent-all',tp:'--accent-tp',tu:'--accent-tu',un:'--accent-un'};
-  document.documentElement.style.setProperty('--tab-accent',`var(${m[tab]})`);
+  // Update --tab-accent CSS variable to the brand color for this tab
+  const colorMap={all:'--accent-all',tp:'--accent-tp',tu:'--accent-tu',un:'--accent-un'};
+  document.documentElement.style.setProperty('--tab-accent',`var(${colorMap[tab]})`);
   renderAll();
 }
 
@@ -350,6 +352,7 @@ function fmt(n){if(n===null||n===undefined||isNaN(n))return'—';if(n>=1e6)retur
 function fmtDate(s){if(!s)return'—';const d=new Date(s);return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
 function deltaClass(p){if(p>0)return'up';if(p<0)return'down';return'flat';}
 function deltaText(p){if(p===null||isNaN(p))return'—';return(p>=0?'+':'')+p.toFixed(1)+'%';}
+function getAccentColor(){return BRAND[UI.activeTab]||BRAND.all;}
 
 function aggregateDates(dates){
   if(UI.period==='daily')return dates.map(d=>({label:d,dates:[d]}));
@@ -375,8 +378,7 @@ function getCurrentAndPriorWeek(){
 function getMTDPeriods(){
   const latest=new Date(UI.dateTo);
   const mtdStart=new Date(latest.getFullYear(),latest.getMonth(),1).toISOString().slice(0,10);
-  const lme=new Date(latest.getFullYear(),latest.getMonth(),0);
-  const lms=new Date(lme.getFullYear(),lme.getMonth(),1);
+  const lme=new Date(latest.getFullYear(),latest.getMonth(),0),lms=new Date(lme.getFullYear(),lme.getMonth(),1);
   const sd=new Date(lms);sd.setDate(latest.getDate());
   return{mtdCurrent:STATE.allDates.filter(d=>d>=mtdStart&&d<=UI.dateTo),mtdPrior:STATE.allDates.filter(d=>d>=lms.toISOString().slice(0,10)&&d<=new Date(Math.min(sd,lme)).toISOString().slice(0,10))};
 }
@@ -420,7 +422,6 @@ function renderKPIs(agents,dates){
 
 function setKPI(key,value,pct){document.getElementById('kpi-'+key).textContent=value;setDelta('kpi-'+key+'-delta',pct);}
 function setDelta(id,pct){const el=document.getElementById(id);if(!el)return;el.className='delta '+deltaClass(pct);el.textContent=deltaText(pct);}
-function getAccentColor(){const m={all:'#0A8080',tp:'#818cf8',tu:'#f97316',un:'#64748b'};return m[UI.activeTab]||'#0A8080';}
 
 function renderTrendChart(agents,dates){
   const color=getAccentColor(),groups=aggregateDates(dates);
@@ -480,7 +481,7 @@ function renderTable(agents,dates){
   const maxWords=rows[0]?.words||1,total=rows.length,start=(UI.page-1)*UI.pageSize,pageRows=rows.slice(start,start+UI.pageSize);
   const tbody=document.getElementById('tableBody');
   if(!pageRows.length){tbody.innerHTML='<tr><td colspan="8" class="no-rows">No agents match your filters</td></tr>';}
-  else{tbody.innerHTML=pageRows.map(r=>{const bp=Math.round((r.words/maxWords)*100);return`<tr><td><div class="agent-cell"><span class="agent-name">${esc(r.name)}</span><span class="agent-email">${esc(r.email)}</span></div></td><td><span class="team-badge ${r.team}">${r.teamLabel}</span></td><td><span style="display:flex;align-items:center;gap:6px"><span class="status-dot ${r.active?'active':'inactive'}"></span><span style="font-size:12px">${r.active?'Active':'Inactive'}</span></span></td><td class="primary">${r.words>0?fmt(r.words):'—'}</td><td>${r.activeDays>0?r.activeDays+'d':'—'}</td><td>${r.avgDay>0?fmt(r.avgDay):'—'}</td><td style="font-family:var(--font-mono);font-size:11px">${r.lastActive||'—'}</td><td><div class="usage-bar-wrap"><div class="usage-bar-bg"><div class="usage-bar-fill" style="width:${bp}%"></div></div><span class="usage-val">${bp}%</span></div></td></tr>`;}).join('');}
+  else{tbody.innerHTML=pageRows.map(r=>{const bp=Math.round((r.words/maxWords)*100);return`<tr><td><div class="agent-cell"><span class="agent-name">${esc(r.name)}</span><span class="agent-email">${esc(r.email)}</span></div></td><td><span class="team-badge ${r.team}">${r.teamLabel}</span></td><td><span style="display:flex;align-items:center;gap:6px"><span class="status-dot ${r.active?'active':'inactive'}"></span><span style="font-size:12px">${r.active?'Active':'Inactive'}</span></span></td><td class="primary">${r.words>0?fmt(r.words):'—'}</td><td>${r.activeDays>0?r.activeDays+'d':'—'}</td><td>${r.avgDay>0?fmt(r.avgDay):'—'}</td><td style="font-family:var(--font-mono);font-size:11px">${r.lastActive||'—'}</td><td><div class="usage-bar-wrap"><div class="usage-bar-bg"><div class="usage-bar-fill" style="width:${bp}%;background:${getAccentColor()}"></div></div><span class="usage-val">${bp}%</span></div></td></tr>`;}).join('');}
   const tp=Math.ceil(total/UI.pageSize);
   document.getElementById('paginationInfo').textContent=`${Math.min(start+1,total)}–${Math.min(start+UI.pageSize,total)} of ${total} agents`;
   let bh='';for(let p=1;p<=Math.min(tp,7);p++)bh+=`<button class="page-btn${p===UI.page?' active':''}" onclick="goPage(${p})">${p}</button>`;
