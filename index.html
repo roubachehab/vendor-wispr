@@ -19,6 +19,7 @@
   --accent-un:#BABABC;--accent-un-dim:rgba(186,186,188,0.12);
   --green:#22c55e;--green-dim:rgba(34,197,94,0.12);
   --red:#ef4444;--red-dim:rgba(239,68,68,0.12);
+  --amber:#f59e0b;--amber-dim:rgba(245,158,11,0.12);
   --radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-xl:20px;
   --shadow-card:0 1px 3px rgba(0,0,0,0.4),0 4px 16px rgba(0,0,0,0.3);
   --shadow-elevated:0 8px 32px rgba(0,0,0,0.5);
@@ -115,7 +116,7 @@ th.sorted{color:var(--text-primary);}
 tbody tr{border-bottom:1px solid var(--border);transition:background 0.1s;}
 tbody tr:last-child{border-bottom:none;}
 tbody tr:hover{background:var(--bg-card-hover);}
-td{padding:12px 16px;font-size:13px;color:var(--text-secondary);white-space:nowrap;}
+td{padding:11px 16px;font-size:13px;color:var(--text-secondary);white-space:nowrap;}
 td.primary{color:var(--text-primary);font-weight:500;}
 .agent-cell{display:flex;flex-direction:column;gap:2px;}
 .agent-name{font-size:13px;font-weight:500;color:var(--text-primary);}
@@ -124,13 +125,29 @@ td.primary{color:var(--text-primary);font-weight:500;}
 .team-badge.tp{background:var(--accent-tp-dim);color:var(--accent-tp);}
 .team-badge.tu{background:var(--accent-tu-dim);color:var(--accent-tu);}
 .team-badge.un{background:var(--accent-un-dim);color:var(--accent-un);}
+/* Adoption tier badges */
+.tier-badge{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;font-family:var(--font-mono);white-space:nowrap;}
+.tier-heavy{background:rgba(34,197,94,0.12);color:#22c55e;}
+.tier-regular{background:rgba(10,128,128,0.15);color:#0A8080;}
+.tier-light{background:rgba(245,158,11,0.12);color:#f59e0b;}
+.tier-inactive{background:var(--bg-input);color:var(--text-muted);}
+/* 7-day trend indicator */
+.trend-indicator{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;font-family:var(--font-mono);padding:2px 8px;border-radius:20px;}
+.trend-up{background:rgba(34,197,94,0.12);color:#22c55e;}
+.trend-down{background:rgba(239,68,68,0.12);color:#ef4444;}
+.trend-flat{background:var(--bg-input);color:var(--text-muted);}
+/* Consistency bar */
+.consist-wrap{display:flex;align-items:center;gap:6px;min-width:90px;}
+.consist-bar-bg{flex:1;height:4px;background:var(--bg-input);border-radius:2px;overflow:hidden;}
+.consist-bar-fill{height:100%;border-radius:2px;transition:width 0.3s;}
+.consist-val{font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);min-width:32px;}
 .status-dot{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0;}
 .status-dot.active{background:var(--green);}
 .status-dot.inactive{background:var(--text-dim);}
-.usage-bar-wrap{display:flex;align-items:center;gap:8px;min-width:120px;}
+.usage-bar-wrap{display:flex;align-items:center;gap:8px;min-width:100px;}
 .usage-bar-bg{flex:1;height:4px;background:var(--bg-input);border-radius:2px;overflow:hidden;}
 .usage-bar-fill{height:100%;border-radius:2px;background:var(--tab-accent);transition:width 0.3s;}
-.usage-val{font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);min-width:44px;text-align:right;}
+.usage-val{font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);min-width:36px;text-align:right;}
 .pagination{padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--text-muted);}
 .page-btns{display:flex;gap:4px;}
 .page-btn{padding:5px 10px;border-radius:var(--radius-sm);background:none;border:1px solid var(--border-strong);color:var(--text-secondary);font-size:12px;font-family:var(--font-body);cursor:pointer;transition:all 0.1s;}
@@ -262,14 +279,45 @@ td.primary{color:var(--text-primary);font-weight:500;}
           <div><div class="table-title">Agent Breakdown</div><div class="table-subtitle" id="tableSubtitle">All agents in selected period</div></div>
           <div class="table-controls">
             <div class="search-wrap"><svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10.5 10.5 3 3"/></svg><input type="search" class="search-input" id="searchInput" placeholder="Search agents…" oninput="filterTable()"></div>
-            <select class="select-input" id="statusFilter" onchange="filterTable()"><option value="all">All statuses</option><option value="active">Active only</option><option value="inactive">Inactive only</option></select>
-            <select class="select-input" id="sortSelect" onchange="filterTable()"><option value="words-desc">Words ↓</option><option value="words-asc">Words ↑</option><option value="name-asc">Name A–Z</option><option value="active-days-desc">Active days ↓</option></select>
+            <select class="select-input" id="statusFilter" onchange="filterTable()">
+              <option value="all">All statuses</option>
+              <option value="active">Active only</option>
+              <option value="inactive">Inactive only</option>
+            </select>
+            <select class="select-input" id="tierFilter" onchange="filterTable()">
+              <option value="all">All tiers</option>
+              <option value="Heavy User">Heavy Users</option>
+              <option value="Regular">Regular</option>
+              <option value="Light">Light</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+            <select class="select-input" id="sortSelect" onchange="filterTable()">
+              <option value="words-desc">Words ↓</option>
+              <option value="words-asc">Words ↑</option>
+              <option value="name-asc">Name A–Z</option>
+              <option value="consistency-desc">Consistency ↓</option>
+              <option value="active-days-desc">Active days ↓</option>
+              <option value="days-since-desc">Gone quiet ↓</option>
+              <option value="trend-desc">Trend ↓</option>
+            </select>
             <button class="btn btn-ghost" onclick="downloadCSV()"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3M2 12h12"/></svg>Export CSV</button>
           </div>
         </div>
         <div class="table-scroll">
-          <table><thead><tr><th>Agent</th><th>Team</th><th>Status</th><th class="sorted">Words Dictated ↓</th><th>Active Days</th><th>Avg / Day</th><th>Last Active</th><th>Usage %</th></tr></thead>
-          <tbody id="tableBody"><tr><td colspan="8" class="no-rows">Loading…</td></tr></tbody></table>
+          <table>
+            <thead><tr>
+              <th>Agent</th>
+              <th>Team</th>
+              <th>Tier</th>
+              <th class="sorted">Words ↓</th>
+              <th>Consistency</th>
+              <th>Avg / Day</th>
+              <th>7d Trend</th>
+              <th>Peak Day</th>
+              <th>Gone Quiet</th>
+            </tr></thead>
+            <tbody id="tableBody"><tr><td colspan="9" class="no-rows">Loading…</td></tr></tbody>
+          </table>
         </div>
         <div class="pagination"><span id="paginationInfo"></span><div class="page-btns" id="pageButtons"></div></div>
       </div>
@@ -297,57 +345,26 @@ td.primary{color:var(--text-primary);font-weight:500;}
 <script>
 const REPO_OWNER='roubachehab',REPO_NAME='vendor-wispr',DATA_PATH='data/dashboard.json';
 let STATE={agents:[],roster:{},allDates:[],lastUpdated:null};
-let UI={activeTab:'all',period:'daily',dateFrom:null,dateTo:null,searchQuery:'',statusFilter:'all',sortBy:'words-desc',page:1,pageSize:25};
+let UI={activeTab:'all',period:'daily',dateFrom:null,dateTo:null,searchQuery:'',statusFilter:'all',tierFilter:'all',sortBy:'words-desc',page:1,pageSize:25};
 let CHARTS={trend:null,status:null,wow:null,top:null};
 let pendingWisp=null,pendingRoster=null,currentTableRows=[];
 const BRAND={all:'#0A8080',tp:'#EF523C',tu:'#2BABAD',un:'#BABABC'};
 
-// ── Date helpers — always work in LOCAL time, never UTC ──
-function toISO(d){
-  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
-  return`${y}-${m}-${day}`;
-}
-// Parse YYYY-MM-DD as a LOCAL midnight date (avoids UTC→local shift causing day-off-by-one)
-function localDate(s){
-  const[y,mo,d]=s.split('-').map(Number);
-  return new Date(y,mo-1,d);
-}
+// ── Date helpers — always LOCAL time ──
+function toISO(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return`${y}-${m}-${day}`;}
+function localDate(s){const[y,mo,d]=s.split('-').map(Number);return new Date(y,mo-1,d);}
 function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
 function getLatestDate(){return STATE.allDates.length?STATE.allDates[STATE.allDates.length-1]:toISO(new Date());}
 function getEarliestDate(){return STATE.allDates.length?STATE.allDates[0]:toISO(new Date());}
+function getMondayOf(d){const day=d.getDay(),offset=day===0?6:day-1;return addDays(d,-offset);}
 
-// ── Monday of a given local date ──
-function getMondayOf(d){
-  const day=d.getDay(); // 0=Sun, 1=Mon ... 6=Sat
-  const offset=day===0?6:day-1; // days since Monday
-  return addDays(d,-offset);
-}
-
-// ── Quick filter presets anchored to latest data date ──
 function getQuickRange(preset){
-  const latestStr=getLatestDate();
-  const latest=localDate(latestStr); // LOCAL date — no timezone shift
-
-  if(preset==='this-month'){
-    const from=new Date(latest.getFullYear(),latest.getMonth(),1);
-    return{from:toISO(from),to:latestStr};
-  }
-  if(preset==='last-30'){
-    return{from:toISO(addDays(latest,-29)),to:latestStr};
-  }
-  if(preset==='this-week'){
-    // Monday of the week containing latest date → latest date
-    return{from:toISO(getMondayOf(latest)),to:latestStr};
-  }
-  if(preset==='last-week'){
-    // Monday of last week → Sunday of last week
-    const thisMon=getMondayOf(latest);
-    const lastMon=addDays(thisMon,-7);
-    const lastSun=addDays(thisMon,-1);
-    return{from:toISO(lastMon),to:toISO(lastSun)};
-  }
-  const from=new Date(latest.getFullYear(),latest.getMonth(),1);
-  return{from:toISO(from),to:latestStr};
+  const latestStr=getLatestDate(),latest=localDate(latestStr);
+  if(preset==='this-month')return{from:toISO(new Date(latest.getFullYear(),latest.getMonth(),1)),to:latestStr};
+  if(preset==='last-30')return{from:toISO(addDays(latest,-29)),to:latestStr};
+  if(preset==='this-week')return{from:toISO(getMondayOf(latest)),to:latestStr};
+  if(preset==='last-week'){const tm=getMondayOf(latest);return{from:toISO(addDays(tm,-7)),to:toISO(addDays(tm,-1))};}
+  return{from:toISO(new Date(latest.getFullYear(),latest.getMonth(),1)),to:latestStr};
 }
 
 function setQuickFilter(preset,btn){
@@ -426,18 +443,23 @@ function deltaClass(p){if(p>0)return'up';if(p<0)return'down';return'flat';}
 function deltaText(p){if(p===null||isNaN(p))return'—';return(p>=0?'+':'')+p.toFixed(1)+'%';}
 function getAccentColor(){return BRAND[UI.activeTab]||BRAND.all;}
 
+// ── Adoption tier ──
+function getTier(avgDay){
+  if(avgDay>=1000)return'Heavy User';
+  if(avgDay>=500)return'Regular';
+  if(avgDay>=100)return'Light';
+  return'Inactive';
+}
+function tierClass(tier){
+  if(tier==='Heavy User')return'tier-heavy';
+  if(tier==='Regular')return'tier-regular';
+  if(tier==='Light')return'tier-light';
+  return'tier-inactive';
+}
+
 function aggregateDates(dates){
   if(UI.period==='daily')return dates.map(d=>({label:d,dates:[d]}));
-  if(UI.period==='weekly'){
-    const map={};
-    dates.forEach(d=>{
-      const ld=localDate(d),mon=getMondayOf(ld);
-      const key=toISO(mon);
-      if(!map[key])map[key]={label:'W/'+key.slice(5),dates:[]};
-      map[key].dates.push(d);
-    });
-    return Object.values(map);
-  }
+  if(UI.period==='weekly'){const map={};dates.forEach(d=>{const ld=localDate(d),mon=getMondayOf(ld),key=toISO(mon);if(!map[key])map[key]={label:'W/'+key.slice(5),dates:[]};map[key].dates.push(d);});return Object.values(map);}
   const map={};dates.forEach(d=>{const key=d.slice(0,7);if(!map[key])map[key]={label:localDate(d).toLocaleDateString('en-US',{month:'short',year:'2-digit'}),dates:[]};map[key].dates.push(d);});return Object.values(map);
 }
 
@@ -450,34 +472,21 @@ function renderAll(){
 }
 
 function getCurrentAndPriorWeek(){
-  const latest=localDate(UI.dateTo);
-  const monday=getMondayOf(latest);
-  const priorMon=addDays(monday,-7);
-  const priorSun=addDays(monday,-1);
-  return{
-    currentWeek:STATE.allDates.filter(d=>d>=toISO(monday)&&d<=UI.dateTo),
-    priorWeek:STATE.allDates.filter(d=>d>=toISO(priorMon)&&d<=toISO(priorSun))
-  };
+  const latest=localDate(UI.dateTo),monday=getMondayOf(latest),priorMon=addDays(monday,-7),priorSun=addDays(monday,-1);
+  return{currentWeek:STATE.allDates.filter(d=>d>=toISO(monday)&&d<=UI.dateTo),priorWeek:STATE.allDates.filter(d=>d>=toISO(priorMon)&&d<=toISO(priorSun))};
 }
 
 function getMTDPeriods(){
   const latest=localDate(UI.dateTo);
   const mtdStart=toISO(new Date(latest.getFullYear(),latest.getMonth(),1));
-  const lme=new Date(latest.getFullYear(),latest.getMonth(),0); // last day of prior month
-  const lms=new Date(lme.getFullYear(),lme.getMonth(),1);       // first day of prior month
-  const sameDay=new Date(lms.getFullYear(),lms.getMonth(),latest.getDate());
-  const capDay=sameDay>lme?lme:sameDay;
-  return{
-    mtdCurrent:STATE.allDates.filter(d=>d>=mtdStart&&d<=UI.dateTo),
-    mtdPrior:STATE.allDates.filter(d=>d>=toISO(lms)&&d<=toISO(capDay))
-  };
+  const lme=new Date(latest.getFullYear(),latest.getMonth(),0),lms=new Date(lme.getFullYear(),lme.getMonth(),1);
+  const sameDay=new Date(lms.getFullYear(),lms.getMonth(),latest.getDate()),capDay=sameDay>lme?lme:sameDay;
+  return{mtdCurrent:STATE.allDates.filter(d=>d>=mtdStart&&d<=UI.dateTo),mtdPrior:STATE.allDates.filter(d=>d>=toISO(lms)&&d<=toISO(capDay))};
 }
 
 function getPriorPeriodDates(dates){
   if(!dates.length)return[];
-  const span=dates.length;
-  const from=addDays(localDate(dates[0]),-span);
-  const to=addDays(localDate(dates[0]),-1);
+  const from=addDays(localDate(dates[0]),-dates.length),to=addDays(localDate(dates[0]),-1);
   return STATE.allDates.filter(d=>d>=toISO(from)&&d<=toISO(to));
 }
 
@@ -530,14 +539,11 @@ function renderStatusChart(agents,dates){
 }
 
 function renderWoWChart(agents){
-  const color=getAccentColor();
-  const latest=localDate(UI.dateTo);
-  const weeks=[];
+  const color=getAccentColor(),latest=localDate(UI.dateTo),weeks=[];
   for(let i=7;i>=0;i--){
-    const weekEnd=addDays(latest,-(i*7));
-    const weekStart=addDays(weekEnd,-6);
-    const wDates=STATE.allDates.filter(d=>d>=toISO(weekStart)&&d<=toISO(weekEnd));
-    weeks.push({label:'W'+weekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'}),total:agents.reduce((s,a)=>s+totalWordsInPeriod(a,wDates),0),isCurrent:i===0});
+    const we=addDays(latest,-(i*7)),ws=addDays(we,-6);
+    const wDates=STATE.allDates.filter(d=>d>=toISO(ws)&&d<=toISO(we));
+    weeks.push({label:'W'+ws.toLocaleDateString('en-US',{month:'short',day:'numeric'}),total:agents.reduce((s,a)=>s+totalWordsInPeriod(a,wDates),0),isCurrent:i===0});
   }
   if(CHARTS.wow)CHARTS.wow.destroy();
   CHARTS.wow=new Chart(document.getElementById('wowChart'),{type:'bar',data:{labels:weeks.map(w=>w.label),datasets:[{data:weeks.map(w=>w.total),backgroundColor:weeks.map(w=>w.isCurrent?color:color+'66'),borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)+' words'}}},scales:{x:{grid:{display:false},ticks:{color:'#8892a4',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#8892a4',font:{size:11},callback:v=>fmt(v)},beginAtZero:true}}}});
@@ -550,37 +556,117 @@ function renderTopChart(agents,dates){
   CHARTS.top=new Chart(document.getElementById('topChart'),{type:'bar',data:{labels:sorted.map(a=>a.name),datasets:[{data:sorted.map(a=>a.words),backgroundColor:color+'cc',borderRadius:3,borderSkipped:false}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)+' words'}}},scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#8892a4',font:{size:10},callback:v=>fmt(v)},beginAtZero:true},y:{grid:{display:false},ticks:{color:'#c4cad6',font:{size:11}}}}}});
 }
 
-function filterTable(){UI.searchQuery=document.getElementById('searchInput').value.toLowerCase();UI.statusFilter=document.getElementById('statusFilter').value;UI.sortBy=document.getElementById('sortSelect').value;UI.page=1;renderTable(getAgentsForTab(),getFilteredDates());}
+function filterTable(){
+  UI.searchQuery=document.getElementById('searchInput').value.toLowerCase();
+  UI.statusFilter=document.getElementById('statusFilter').value;
+  UI.tierFilter=document.getElementById('tierFilter').value;
+  UI.sortBy=document.getElementById('sortSelect').value;
+  UI.page=1;
+  renderTable(getAgentsForTab(),getFilteredDates());
+}
 
 function buildRows(agents,dates){
   const tl={tp:'Teleperformance',tu:'TaskUs',un:'Unassigned'};
+  // Last 7 dates and prior 7 dates for trend calculation
+  const last7=STATE.allDates.slice(-7);
+  const prev7=STATE.allDates.slice(-14,-7);
+  // Latest date for "days since active" calculation
+  const latestDate=getLatestDate();
+
   let rows=agents.map(a=>{
-    const words=totalWordsInPeriod(a,dates),active=isActive(a,dates);
+    const words=totalWordsInPeriod(a,dates);
     const activeDays=dates.filter(d=>(a.daily[d]||0)>0).length;
     const avgDay=activeDays>0?Math.round(words/activeDays):0;
-    const lastActive=[...dates].reverse().find(d=>(a.daily[d]||0)>0)||null;
-    return{...a,words,active,activeDays,avgDay,lastActive,teamLabel:tl[a.team]||a.team};
+
+    // Consistency: % of period days with any usage
+    const consistency=dates.length>0?Math.round((activeDays/dates.length)*100):0;
+
+    // Peak day: highest single day in period
+    let peakDay=0,peakDate=null;
+    dates.forEach(d=>{const v=a.daily[d]||0;if(v>peakDay){peakDay=v;peakDate=d;}});
+
+    // Days since last active (vs latest date in dataset)
+    const lastActiveDateInPeriod=[...dates].reverse().find(d=>(a.daily[d]||0)>0)||null;
+    let daysSince=null;
+    if(lastActiveDateInPeriod){
+      const diff=localDate(latestDate)-localDate(lastActiveDateInPeriod);
+      daysSince=Math.round(diff/(1000*60*60*24));
+    }
+
+    // 7-day trend: compare last 7 days vs prior 7 days
+    const curr7=last7.reduce((s,d)=>s+(a.daily[d]||0),0);
+    const prior7=prev7.reduce((s,d)=>s+(a.daily[d]||0),0);
+    let trendPct=null,trendDir='flat';
+    if(prior7>0){trendPct=((curr7-prior7)/prior7)*100;trendDir=trendPct>5?'up':trendPct<-5?'down':'flat';}
+    else if(curr7>0){trendDir='up';trendPct=100;}
+
+    // Adoption tier (based on avg words/day in period)
+    const tier=getTier(avgDay);
+
+    return{...a,words,activeDays,avgDay,consistency,peakDay,peakDate,daysSince,trendPct,trendDir,tier,teamLabel:tl[a.team]||a.team};
   });
+
+  // Filters
   if(UI.searchQuery)rows=rows.filter(r=>r.name.toLowerCase().includes(UI.searchQuery)||r.email.toLowerCase().includes(UI.searchQuery));
-  if(UI.statusFilter==='active')rows=rows.filter(r=>r.active);
-  if(UI.statusFilter==='inactive')rows=rows.filter(r=>!r.active);
+  if(UI.statusFilter==='active')rows=rows.filter(r=>r.activeDays>0);
+  if(UI.statusFilter==='inactive')rows=rows.filter(r=>r.activeDays===0);
+  if(UI.tierFilter!=='all')rows=rows.filter(r=>r.tier===UI.tierFilter);
+
+  // Sort
   const[sk,sd]=UI.sortBy.split('-');
-  rows.sort((a,b)=>{let av,bv;if(sk==='words'){av=a.words;bv=b.words;}else if(sk==='name'){av=a.name;bv=b.name;}else{av=a.activeDays;bv=b.activeDays;}if(typeof av==='string')return sd==='asc'?av.localeCompare(bv):bv.localeCompare(av);return sd==='asc'?av-bv:bv-av;});
+  rows.sort((a,b)=>{
+    let av,bv;
+    if(sk==='words'){av=a.words;bv=b.words;}
+    else if(sk==='name'){av=a.name;bv=b.name;}
+    else if(sk==='consistency'){av=a.consistency;bv=b.consistency;}
+    else if(sk==='days'){av=a.daysSince??-1;bv=b.daysSince??-1;}
+    else if(sk==='trend'){av=a.trendPct??-999;bv=b.trendPct??-999;}
+    else{av=a.activeDays;bv=b.activeDays;}
+    if(typeof av==='string')return sd==='asc'?av.localeCompare(bv):bv.localeCompare(av);
+    return sd==='asc'?av-bv:bv-av;
+  });
   return rows;
 }
 
 function renderTable(agents,dates){
   const rows=buildRows(agents,dates);currentTableRows=rows;
-  const maxWords=rows[0]?.words||1,total=rows.length,start=(UI.page-1)*UI.pageSize,pageRows=rows.slice(start,start+UI.pageSize);
+  const maxWords=rows.filter(r=>r.words>0)[0]?.words||1;
+  const total=rows.length,start=(UI.page-1)*UI.pageSize,pageRows=rows.slice(start,start+UI.pageSize);
   const tbody=document.getElementById('tableBody');
-  if(!pageRows.length){tbody.innerHTML='<tr><td colspan="8" class="no-rows">No agents match your filters</td></tr>';}
-  else{tbody.innerHTML=pageRows.map(r=>{const bp=Math.round((r.words/maxWords)*100);return`<tr><td><div class="agent-cell"><span class="agent-name">${esc(r.name)}</span><span class="agent-email">${esc(r.email)}</span></div></td><td><span class="team-badge ${r.team}">${r.teamLabel}</span></td><td><span style="display:flex;align-items:center;gap:6px"><span class="status-dot ${r.active?'active':'inactive'}"></span><span style="font-size:12px;color:var(--text-secondary)">${r.active?'Active':'Inactive'}</span></span></td><td class="primary">${r.words>0?fmt(r.words):'—'}</td><td>${r.activeDays>0?r.activeDays+'d':'—'}</td><td>${r.avgDay>0?fmt(r.avgDay):'—'}</td><td style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary)">${r.lastActive||'—'}</td><td><div class="usage-bar-wrap"><div class="usage-bar-bg"><div class="usage-bar-fill" style="width:${bp}%;background:${getAccentColor()}"></div></div><span class="usage-val">${bp}%</span></div></td></tr>`;}).join('');}
+  if(!pageRows.length){tbody.innerHTML='<tr><td colspan="9" class="no-rows">No agents match your filters</td></tr>';}
+  else{
+    tbody.innerHTML=pageRows.map(r=>{
+      const bp=Math.round((r.words/maxWords)*100);
+      // Consistency bar color: green>=70, amber>=40, red<40
+      const cColor=r.consistency>=70?'#22c55e':r.consistency>=40?'#f59e0b':'#ef4444';
+      const consistBar=`<div class="consist-wrap"><div class="consist-bar-bg"><div class="consist-bar-fill" style="width:${r.consistency}%;background:${cColor}"></div></div><span class="consist-val">${r.consistency}%</span></div>`;
+      // Trend indicator
+      const trendHTML=r.trendDir==='up'
+        ?`<span class="trend-indicator trend-up">↑ ${r.trendPct!=null?'+'+Math.round(r.trendPct)+'%':''}</span>`
+        :r.trendDir==='down'
+        ?`<span class="trend-indicator trend-down">↓ ${r.trendPct!=null?Math.round(r.trendPct)+'%':''}</span>`
+        :`<span class="trend-indicator trend-flat">→ flat</span>`;
+      // Days since — "today", "Xd ago", or "—"
+      const quietHTML=r.daysSince===null?'—':r.daysSince===0?'<span style="color:var(--green)">today</span>':`<span style="color:${r.daysSince>14?'#ef4444':r.daysSince>7?'#f59e0b':'var(--text-secondary)'}">${r.daysSince}d ago</span>`;
+      return`<tr>
+        <td><div class="agent-cell"><span class="agent-name">${esc(r.name)}</span><span class="agent-email">${esc(r.email)}</span></div></td>
+        <td><span class="team-badge ${r.team}">${r.teamLabel}</span></td>
+        <td><span class="tier-badge ${tierClass(r.tier)}">${r.tier}</span></td>
+        <td class="primary">${r.words>0?fmt(r.words):'—'}</td>
+        <td>${consistBar}</td>
+        <td>${r.avgDay>0?fmt(r.avgDay):'—'}</td>
+        <td>${trendHTML}</td>
+        <td style="font-family:var(--font-mono);font-size:11px">${r.peakDay>0?fmt(r.peakDay):'—'}</td>
+        <td>${quietHTML}</td>
+      </tr>`;
+    }).join('');
+  }
   const tp=Math.ceil(total/UI.pageSize);
   document.getElementById('paginationInfo').textContent=`${Math.min(start+1,total)}–${Math.min(start+UI.pageSize,total)} of ${total} agents`;
   let bh='';for(let p=1;p<=Math.min(tp,7);p++)bh+=`<button class="page-btn${p===UI.page?' active':''}" onclick="goPage(${p})">${p}</button>`;
   if(tp>7)bh+=`<span style="padding:5px 4px;color:var(--text-muted)">…</span><button class="page-btn${tp===UI.page?' active':''}" onclick="goPage(${tp})">${tp}</button>`;
   document.getElementById('pageButtons').innerHTML=bh;
-  document.getElementById('tableSubtitle').textContent=`${total} agents · ${dates.length} days · ${rows.filter(r=>r.active).length} active`;
+  document.getElementById('tableSubtitle').textContent=`${total} agents · ${dates.length} days · ${rows.filter(r=>r.activeDays>0).length} active`;
 }
 
 function goPage(p){UI.page=p;renderTable(getAgentsForTab(),getFilteredDates());}
@@ -589,9 +675,14 @@ function downloadCSV(){
   if(!currentTableRows.length){toast('No data to export','info');return;}
   const tabLabels={all:'All Agents',tp:'Teleperformance',tu:'TaskUs',un:'Unassigned'};
   const tabLabel=tabLabels[UI.activeTab]||UI.activeTab;
-  const headers=['Name','Email','Team','Status','Words Dictated','Active Days','Avg Words/Day','Last Active','Usage %'];
-  const maxWords=currentTableRows[0]?.words||1;
-  const csvRows=currentTableRows.map(r=>[csvCell(r.name),csvCell(r.email),csvCell(r.teamLabel),r.active?'Active':'Inactive',r.words,r.activeDays,r.avgDay,r.lastActive||'',Math.round((r.words/maxWords)*100)+'%']);
+  const headers=['Name','Email','Team','Tier','Words Dictated','Consistency %','Active Days','Avg Words/Day','7d Trend %','Peak Day Words','Days Since Active'];
+  const csvRows=currentTableRows.map(r=>[
+    csvCell(r.name),csvCell(r.email),csvCell(r.teamLabel),csvCell(r.tier),
+    r.words,r.consistency+'%',r.activeDays,r.avgDay,
+    r.trendPct!=null?Math.round(r.trendPct)+'%':'',
+    r.peakDay||0,
+    r.daysSince!=null?r.daysSince+'d':''
+  ]);
   const csv=[headers.join(','),...csvRows.map(r=>r.join(','))].join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
