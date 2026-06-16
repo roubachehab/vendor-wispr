@@ -76,6 +76,7 @@ body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-pri
 .qf-btn:hover{background:var(--bg-card-hover);color:var(--text-primary);border-color:var(--tab-accent);}
 .qf-btn.active{background:var(--accent-all-dim);color:var(--accent-all);border-color:var(--accent-all);}
 .period-summary{font-size:12px;font-weight:500;color:var(--text-secondary);font-family:var(--font-mono);}
+/* Agent filter bar */
 .agent-filter-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);}
 .agent-filter-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;white-space:nowrap;margin-right:4px;}
 /* Search + autocomplete */
@@ -98,6 +99,7 @@ body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-pri
 .autocomplete-empty{padding:14px 12px;font-size:12px;color:var(--text-muted);font-style:italic;text-align:center;}
 .select-input{background:var(--bg-input);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:6px 12px;font-family:var(--font-body);font-size:13px;color:var(--text-primary);outline:none;cursor:pointer;}
 .select-input option{background:var(--bg-card);color:var(--text-primary);}
+/* Lead context banner */
 .lead-context-banner{margin-bottom:16px;padding:10px 16px;background:var(--bg-card);border:1px solid var(--border-strong);border-left:3px solid var(--tab-accent);border-radius:var(--radius-md);display:none;align-items:center;justify-content:space-between;gap:12px;}
 .lead-context-banner.visible{display:flex;}
 .lead-context-info{display:flex;align-items:center;gap:10px;}
@@ -241,7 +243,7 @@ td.primary{color:var(--text-primary);font-weight:500;}
 <nav class="tab-bar">
   <button class="tab-item active" data-tab="all" onclick="switchTab('all')">All Agents <span class="tab-pill" id="pill-all">0</span></button>
   <button class="tab-item" data-tab="tp" onclick="switchTab('tp')">Teleperformance <span class="tab-pill" id="pill-tp">0</span></button>
-<button class="tab-item" data-tab="tu" onclick="switchTab('tu')">TaskUs <span class="tab-pill" id="pill-tu">0</span></button>
+  <button class="tab-item" data-tab="tu" onclick="switchTab('tu')">TaskUs <span class="tab-pill" id="pill-tu">0</span></button>
   <button class="tab-item" data-tab="un" onclick="switchTab('un')">Unassigned <span class="tab-pill" id="pill-un">0</span></button>
 </nav>
 <main class="main" id="mainContent">
@@ -275,7 +277,7 @@ td.primary{color:var(--text-primary);font-weight:500;}
       <button class="qf-btn" data-qf="this-week" onclick="setQuickFilter('this-week',this)">This Week</button>
       <button class="qf-btn" data-qf="last-week" onclick="setQuickFilter('last-week',this)">Last Week</button>
     </div>
-    <!-- Agent filter bar -->
+    <!-- Agent filter bar with autocomplete search -->
     <div class="agent-filter-bar">
       <span class="agent-filter-label">Filters:</span>
       <div class="search-wrap">
@@ -406,7 +408,6 @@ const BRAND={all:'#0A8080',tp:'#EF523C',tu:'#2BABAD',un:'#BABABC'};
 let acPool=[],acItems=[],acIndex=-1;
 
 function refreshAcPool(){
-  // Pool = agents currently in scope (tab + lead filter)
   let agents=UI.activeTab==='all'?STATE.agents:STATE.agents.filter(a=>a.team===UI.activeTab);
   if(UI.leadFilter&&UI.leadFilter!=='all')agents=agents.filter(a=>a.lead===UI.leadFilter);
   acPool=agents.slice().sort((a,b)=>a.name.localeCompare(b.name));
@@ -415,7 +416,7 @@ function refreshAcPool(){
 function updateSearchPlaceholder(){
   const input=document.getElementById('searchInput');
   if(UI.leadFilter&&UI.leadFilter!=='all'){
-    const count=STATE.agents.filter(a=>a.team===UI.activeTab&&a.lead===UI.leadFilter).length;
+    const count=acPool.length||STATE.agents.filter(a=>a.team===UI.activeTab&&a.lead===UI.leadFilter).length;
     input.placeholder=`Search ${count} agents under ${UI.leadFilter}…`;
   } else {
     input.placeholder='Search agents…';
@@ -447,22 +448,16 @@ function buildAutocomplete(q){
   const list=document.getElementById('autocompleteList');
   const lower=q.toLowerCase();
   const isLeadScoped=UI.leadFilter&&UI.leadFilter!=='all';
-  // Lead scoped: show all agents (up to 40 when no query, 15 when filtering)
-  // No lead: show up to 8 unfiltered, 12 filtered
   const maxItems=q?(isLeadScoped?15:12):(isLeadScoped?40:8);
   const matches=q
     ?acPool.filter(a=>a.name.toLowerCase().includes(lower)||a.email.toLowerCase().includes(lower)).slice(0,maxItems)
     :acPool.slice(0,maxItems);
-
   acItems=matches;acIndex=-1;
-
   const headerLabel=isLeadScoped&&!q
-    ?`${escHtml(UI.leadFilter)} — ${acPool.length} agents`
+    ?`${escHtml(UI.leadFilter)}'s agents`
     :q?`Matching "${escHtml(q)}"`:(`${acPool.length} agent${acPool.length!==1?'s':''} in view`);
-
-  const overflowNote=acPool.length>maxItems&&!q?` of ${acPool.length}`:'';
-  const header=`<div class="autocomplete-header"><span>${headerLabel}</span><span class="autocomplete-header-count">${matches.length}${overflowNote} shown</span></div>`;
-
+  const countLabel=`${matches.length}${acPool.length>maxItems&&!q?' of '+acPool.length:''}`;
+  const header=`<div class="autocomplete-header"><span>${headerLabel}</span><span class="autocomplete-header-count">${countLabel}</span></div>`;
   if(!matches.length){
     list.innerHTML=header+`<div class="autocomplete-empty">No agents found</div>`;
   } else {
@@ -498,7 +493,6 @@ function onSearchKeyDown(e){
   else if(e.key==='Escape'){closeAutocomplete();}
 }
 
-// Close dropdown when clicking outside
 document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))closeAutocomplete();});
 
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -576,7 +570,7 @@ function updateLeadFilter(){
   const col=document.getElementById('leadColHeader');
   sel.style.display=showLead?'':'none';
   col.style.display=showLead?'':'none';
-  if(!showLead){UI.leadFilter='all';sel.value='all';updateLeadBanner();updateSearchPlaceholder();return;}
+  if(!showLead){UI.leadFilter='all';sel.value='all';updateLeadBanner();refreshAcPool();updateSearchPlaceholder();return;}
   const leads=new Set();
   STATE.agents.filter(a=>a.team===UI.activeTab).forEach(a=>{if(a.lead)leads.add(a.lead);});
   const sorted=[...leads].sort();
@@ -584,6 +578,7 @@ function updateLeadFilter(){
   sel.value=UI.leadFilter&&sorted.includes(UI.leadFilter)?UI.leadFilter:'all';
   UI.leadFilter=sel.value;
   updateLeadBanner();
+  refreshAcPool();
   updateSearchPlaceholder();
 }
 
@@ -593,6 +588,7 @@ function applyLeadFilter(){
   UI.searchQuery='';
   UI.page=1;
   updateLeadBanner();
+  refreshAcPool();
   updateSearchPlaceholder();
   renderAll();
 }
@@ -604,6 +600,7 @@ function clearLeadFilter(){
   UI.searchQuery='';
   UI.page=1;
   updateLeadBanner();
+  refreshAcPool();
   updateSearchPlaceholder();
   renderAll();
 }
