@@ -76,6 +76,14 @@ body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-pri
 .qf-btn:hover{background:var(--bg-card-hover);color:var(--text-primary);border-color:var(--tab-accent);}
 .qf-btn.active{background:var(--accent-all-dim);color:var(--accent-all);border-color:var(--accent-all);}
 .period-summary{font-size:12px;font-weight:500;color:var(--text-secondary);font-family:var(--font-mono);}
+/* Lead context banner — shown when a specific lead is selected */
+.lead-context-banner{margin-bottom:16px;padding:10px 16px;background:var(--bg-card);border:1px solid var(--border-strong);border-left:3px solid var(--tab-accent);border-radius:var(--radius-md);display:none;align-items:center;justify-content:space-between;gap:12px;}
+.lead-context-banner.visible{display:flex;}
+.lead-context-info{display:flex;align-items:center;gap:10px;}
+.lead-context-name{font-size:14px;font-weight:600;color:var(--text-primary);}
+.lead-context-sub{font-size:12px;color:var(--text-muted);}
+.lead-context-clear{font-size:12px;color:var(--text-muted);background:none;border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:4px 10px;cursor:pointer;font-family:var(--font-body);transition:all 0.15s;}
+.lead-context-clear:hover{color:var(--text-primary);border-color:var(--text-muted);}
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px;}
 .kpi-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-card);transition:border-color 0.2s,box-shadow 0.2s;position:relative;overflow:hidden;}
 .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--tab-accent);opacity:0.9;}
@@ -141,7 +149,6 @@ td.primary{color:var(--text-primary);font-weight:500;}
 .trend-down{background:rgba(239,68,68,0.12);color:#ef4444;}
 .trend-flat{background:var(--bg-input);color:var(--text-muted);}
 .td-mono{font-family:var(--font-mono);font-size:var(--table-fs);color:var(--text-secondary);}
-/* Table period notice banner */
 .table-period-notice{padding:8px 24px;background:rgba(10,128,128,0.08);border-bottom:1px solid var(--border);font-size:12px;color:var(--text-secondary);display:none;align-items:center;gap:6px;}
 .table-period-notice.visible{display:flex;}
 .table-period-notice strong{color:var(--text-primary);}
@@ -255,9 +262,20 @@ td.primary{color:var(--text-primary);font-weight:500;}
       <button class="qf-btn" data-qf="this-week" onclick="setQuickFilter('this-week',this)">This Week</button>
       <button class="qf-btn" data-qf="last-week" onclick="setQuickFilter('last-week',this)">Last Week</button>
     </div>
+    <!-- Lead context banner: shown when a specific lead is selected -->
+    <div class="lead-context-banner" id="leadContextBanner">
+      <div class="lead-context-info">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6"/></svg>
+        <div>
+          <div class="lead-context-name" id="leadContextName"></div>
+          <div class="lead-context-sub" id="leadContextSub"></div>
+        </div>
+      </div>
+      <button class="lead-context-clear" onclick="clearLeadFilter()">Show all agents</button>
+    </div>
     <div class="kpi-grid">
       <div class="kpi-card"><div class="kpi-label">Total Words Dictated</div><div class="kpi-value" id="kpi-total">—</div><div class="kpi-sub"><span class="delta flat" id="kpi-total-delta">—</span><span id="kpi-total-sub">vs prior period</span></div></div>
-      <div class="kpi-card"><div class="kpi-label">Active Agents</div><div class="kpi-value" id="kpi-active">—</div><div class="kpi-sub"><span class="delta flat" id="kpi-active-delta">—</span><span>of <span id="kpi-active-total">—</span> in tab</span></div></div>
+      <div class="kpi-card"><div class="kpi-label">Active Agents</div><div class="kpi-value" id="kpi-active">—</div><div class="kpi-sub"><span class="delta flat" id="kpi-active-delta">—</span><span>of <span id="kpi-active-total">—</span> in view</span></div></div>
       <div class="kpi-card"><div class="kpi-label">Avg Words / Agent / Day</div><div class="kpi-value" id="kpi-avg">—</div><div class="kpi-sub"><span class="delta flat" id="kpi-avg-delta">—</span><span>active agents only</span></div></div>
       <div class="kpi-card"><div class="kpi-label">Week-over-Week</div><div class="kpi-value" id="kpi-wow">—</div><div class="kpi-sub"><span class="delta flat" id="kpi-wow-delta">—</span><span>current vs prior week</span></div></div>
       <div class="kpi-card"><div class="kpi-label">MTD Total</div><div class="kpi-value" id="kpi-mtd">—</div><div class="kpi-sub"><span class="delta flat" id="kpi-mtd-delta">—</span><span>vs same period last month</span></div></div>
@@ -276,8 +294,7 @@ td.primary{color:var(--text-primary);font-weight:500;}
           <div><div class="table-title">Agent Breakdown</div><div class="table-subtitle" id="tableSubtitle">All agents in selected period</div></div>
           <div class="table-controls">
             <div class="search-wrap"><svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10.5 10.5 3 3"/></svg><input type="search" class="search-input" id="searchInput" placeholder="Search agents…" oninput="filterTable()"></div>
-            <!-- Lead filter — shown only on TP and TU tabs -->
-            <select class="select-input" id="leadFilter" onchange="filterTable()" style="display:none">
+            <select class="select-input" id="leadFilter" onchange="applyLeadFilter()" style="display:none">
               <option value="all">All leads</option>
             </select>
             <select class="select-input" id="statusFilter" onchange="filterTable()">
@@ -304,7 +321,6 @@ td.primary{color:var(--text-primary);font-weight:500;}
             <button class="btn btn-ghost" onclick="downloadCSV()"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3M2 12h12"/></svg>Export CSV</button>
           </div>
         </div>
-        <!-- Period notice: shown when Weekly or Monthly mode narrows the table window -->
         <div class="table-period-notice" id="tablePeriodNotice">
           <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3.5l2 2"/></svg>
           <span id="tablePeriodNoticeText"></span>
@@ -363,14 +379,12 @@ function getLatestDate(){return STATE.allDates.length?STATE.allDates[STATE.allDa
 function getEarliestDate(){return STATE.allDates.length?STATE.allDates[0]:toISO(new Date());}
 function getMondayOf(d){const day=d.getDay(),offset=day===0?6:day-1;return addDays(d,-offset);}
 
-// ── Feature 2: compute the table's effective date window based on period mode ──
-// Daily → full selected range. Weekly → current week within range. Monthly → current month.
 function getTableDates(allFilteredDates){
   if(UI.period==='daily'||!allFilteredDates.length)return allFilteredDates;
   const latest=localDate(UI.dateTo);
   if(UI.period==='weekly'){
-    const mon=getMondayOf(latest),monStr=toISO(mon),toStr=UI.dateTo;
-    return allFilteredDates.filter(d=>d>=monStr&&d<=toStr);
+    const mon=getMondayOf(latest),monStr=toISO(mon);
+    return allFilteredDates.filter(d=>d>=monStr&&d<=UI.dateTo);
   }
   if(UI.period==='monthly'){
     const monthStart=toISO(new Date(latest.getFullYear(),latest.getMonth(),1));
@@ -432,21 +446,52 @@ function updateTabPills(){
   ['all','tp','tu','un'].forEach(t=>{const el=document.getElementById('pill-'+t);if(el)el.textContent=(counts[t]||0).toLocaleString();});
 }
 
-// ── Feature 1: rebuild lead dropdown when tab changes ──
 function updateLeadFilter(){
   const showLead=UI.activeTab==='tp'||UI.activeTab==='tu';
   const sel=document.getElementById('leadFilter');
   const col=document.getElementById('leadColHeader');
   sel.style.display=showLead?'':'none';
   col.style.display=showLead?'':'none';
-  if(!showLead){UI.leadFilter='all';sel.value='all';return;}
-  // Collect leads for this tab from loaded agents
+  if(!showLead){UI.leadFilter='all';sel.value='all';updateLeadBanner();return;}
   const leads=new Set();
   STATE.agents.filter(a=>a.team===UI.activeTab).forEach(a=>{if(a.lead)leads.add(a.lead);});
   const sorted=[...leads].sort();
   sel.innerHTML='<option value="all">All leads</option>'+sorted.map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('');
   sel.value=UI.leadFilter&&sorted.includes(UI.leadFilter)?UI.leadFilter:'all';
   UI.leadFilter=sel.value;
+  updateLeadBanner();
+}
+
+// Called when lead dropdown changes — updates UI state, banner, and rerenders everything
+function applyLeadFilter(){
+  UI.leadFilter=document.getElementById('leadFilter').value;
+  UI.page=1;
+  updateLeadBanner();
+  renderAll();
+}
+
+function clearLeadFilter(){
+  UI.leadFilter='all';
+  document.getElementById('leadFilter').value='all';
+  UI.page=1;
+  updateLeadBanner();
+  renderAll();
+}
+
+// Show/hide the lead context banner above the KPIs
+function updateLeadBanner(){
+  const banner=document.getElementById('leadContextBanner');
+  const nameEl=document.getElementById('leadContextName');
+  const subEl=document.getElementById('leadContextSub');
+  if(UI.leadFilter&&UI.leadFilter!=='all'){
+    const agentCount=STATE.agents.filter(a=>a.team===UI.activeTab&&a.lead===UI.leadFilter).length;
+    const vendor=UI.activeTab==='tp'?'Teleperformance':'TaskUs';
+    nameEl.textContent=UI.leadFilter;
+    subEl.textContent=`${vendor} · ${agentCount} agent${agentCount!==1?'s':''}`;
+    banner.classList.add('visible');
+  } else {
+    banner.classList.remove('visible');
+  }
 }
 
 function switchTab(tab){
@@ -472,7 +517,13 @@ function applyDateRange(){
   UI.page=1;renderAll();
 }
 
-function getAgentsForTab(){return UI.activeTab==='all'?STATE.agents:STATE.agents.filter(a=>a.team===UI.activeTab);}
+// ── KEY CHANGE: getAgentsForTab now applies lead filter so KPIs + charts scope correctly ──
+function getAgentsForTab(){
+  let agents=UI.activeTab==='all'?STATE.agents:STATE.agents.filter(a=>a.team===UI.activeTab);
+  if(UI.leadFilter&&UI.leadFilter!=='all')agents=agents.filter(a=>a.lead===UI.leadFilter);
+  return agents;
+}
+
 function getFilteredDates(){return STATE.allDates.filter(d=>d>=UI.dateFrom&&d<=UI.dateTo);}
 function totalWordsInPeriod(a,dates){return dates.reduce((s,d)=>s+(a.daily[d]||0),0);}
 function isActive(a,dates){return dates.some(d=>(a.daily[d]||0)>0);}
@@ -604,7 +655,6 @@ function renderTopChart(agents,dates){
 
 function filterTable(){
   UI.searchQuery=document.getElementById('searchInput').value.toLowerCase();
-  UI.leadFilter=document.getElementById('leadFilter').value;
   UI.statusFilter=document.getElementById('statusFilter').value;
   UI.usageFilter=document.getElementById('usageFilter').value;
   UI.sortBy=document.getElementById('sortSelect').value;
@@ -613,7 +663,6 @@ function filterTable(){
 }
 
 function buildRows(agents,allDates){
-  // Feature 2: narrow dates for table based on period mode
   const dates=getTableDates(allDates);
   const tl={tp:'Teleperformance',tu:'TaskUs',un:'Unassigned'};
   const last7=STATE.allDates.slice(-7);
@@ -634,10 +683,9 @@ function buildRows(agents,allDates){
     if(prior7>0){trendPct=((curr7-prior7)/prior7)*100;trendDir=trendPct>5?'up':trendPct<-5?'down':'flat';}
     else if(curr7>0){trendDir='up';trendPct=100;}
     const usageLevel=getUsageLevel(words,dates.length);
-    return{...a,words,activeDays,avgDay,peakDay,daysSince,trendPct,trendDir,usageLevel,teamLabel:tl[a.team]||a.team,tableDatesCount:dates.length};
+    return{...a,words,activeDays,avgDay,peakDay,daysSince,trendPct,trendDir,usageLevel,teamLabel:tl[a.team]||a.team};
   });
-  // Feature 1: lead filter
-  if(UI.leadFilter!=='all')rows=rows.filter(r=>r.lead===UI.leadFilter);
+  // agents already lead-filtered by getAgentsForTab; remaining filters below
   if(UI.searchQuery)rows=rows.filter(r=>r.name.toLowerCase().includes(UI.searchQuery)||r.email.toLowerCase().includes(UI.searchQuery)||(r.lead||'').toLowerCase().includes(UI.searchQuery));
   if(UI.statusFilter==='active')rows=rows.filter(r=>r.activeDays>0);
   if(UI.statusFilter==='inactive')rows=rows.filter(r=>r.activeDays===0);
@@ -662,8 +710,6 @@ function renderTable(agents,allDates){
   currentTableRows=rows;
   const showLead=UI.activeTab==='tp'||UI.activeTab==='tu';
   const colCount=showLead?9:8;
-
-  // Feature 2: period notice banner
   const notice=document.getElementById('tablePeriodNotice');
   const noticeText=document.getElementById('tablePeriodNoticeText');
   if(UI.period!=='daily'&&dates.length>0&&dates.length<allDates.length){
@@ -673,7 +719,6 @@ function renderTable(agents,allDates){
   } else {
     notice.classList.remove('visible');
   }
-
   const total=rows.length,start=(UI.page-1)*UI.pageSize,pageRows=rows.slice(start,start+UI.pageSize);
   const tbody=document.getElementById('tableBody');
   if(!pageRows.length){tbody.innerHTML=`<tr><td colspan="${colCount}" class="no-rows">No agents match your filters</td></tr>`;}
@@ -717,6 +762,7 @@ function downloadCSV(){
   const tabLabels={all:'All Agents',tp:'Teleperformance',tu:'TaskUs',un:'Unassigned'};
   const tabLabel=tabLabels[UI.activeTab]||UI.activeTab;
   const showLead=UI.activeTab==='tp'||UI.activeTab==='tu';
+  const leadSuffix=UI.leadFilter&&UI.leadFilter!=='all'?`-${UI.leadFilter.toLowerCase().replace(/\s+/g,'-')}`:'';
   const headers=['Name','Email','Team',...(showLead?['Team Lead']:[]),'Usage','Words Dictated','Active Days','Avg Words/Day (active days)','7d Trend %','Peak Day Words','Days Since Last Active'];
   const csvRows=currentTableRows.map(r=>[
     csvCell(r.name),csvCell(r.email),csvCell(r.teamLabel),...(showLead?[csvCell(r.lead||'')]:[]),csvCell(r.usageLevel),
@@ -729,9 +775,9 @@ function downloadCSV(){
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;
-  a.download=`wispr-agent-breakdown-${tabLabel.toLowerCase().replace(/\s+/g,'-')}-${new Date().toISOString().slice(0,10)}.csv`;
+  a.download=`wispr-${tabLabel.toLowerCase().replace(/\s+/g,'-')}${leadSuffix}-${new Date().toISOString().slice(0,10)}.csv`;
   document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
-  toast(`Downloaded ${currentTableRows.length} agents (${tabLabel})`,'success');
+  toast(`Downloaded ${currentTableRows.length} agents`,'success');
 }
 
 function csvCell(v){const s=String(v||'');return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s;}
@@ -764,7 +810,6 @@ function parseWispr(rows){
   checkPublishReady();
 }
 
-// ── Updated roster parser: reads Team Lead column ──
 function parseRoster(rows){
   const roster={},leads={};
   rows.forEach(row=>{
@@ -804,11 +849,7 @@ async function publishData(){
     let roster={...STATE.roster};
     let leads={...STATE.leads};
     let allDates=new Set(STATE.allDates);
-
-    if(pendingRoster){
-      Object.assign(roster,pendingRoster.roster);
-      Object.assign(leads,pendingRoster.leads);
-    }
+    if(pendingRoster){Object.assign(roster,pendingRoster.roster);Object.assign(leads,pendingRoster.leads);}
     if(pendingWisp){
       pendingWisp.dateCols.forEach(d=>allDates.add(d));
       const map={};merged.forEach(a=>{map[a.email]=a;});
@@ -817,20 +858,12 @@ async function publishData(){
         else{map[na.email]={...na};merged.push(map[na.email]);}
       });
     }
-
-    // Roster is source of truth — prune off-roster agents
     const rosterEmails=new Set(Object.keys(roster));
     const beforeCount=merged.length;
     merged=merged.filter(a=>rosterEmails.has(a.email));
     const removed=beforeCount-merged.length;
     if(removed>0)toast(`Removed ${removed} agent${removed>1?'s':''} not on current roster`,'info');
-
-    // Apply team + lead to every agent
-    merged.forEach(a=>{
-      a.team=roster[a.email]||'un';
-      a.lead=leads[a.email]||'';
-    });
-
+    merged.forEach(a=>{a.team=roster[a.email]||'un';a.lead=leads[a.email]||'';});
     const sortedDates=[...allDates].sort();
     const payload={agents:merged,roster,leads,allDates:sortedDates,lastUpdated:new Date().toISOString()};
     let sha=null;
