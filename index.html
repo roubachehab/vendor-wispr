@@ -85,16 +85,17 @@ body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-pri
 .search-input:focus{border-color:var(--tab-accent);}
 .search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;color:var(--text-muted);pointer-events:none;}
 /* Autocomplete dropdown */
-.autocomplete-list{position:absolute;top:calc(100% + 4px);left:0;width:300px;max-height:260px;overflow-y:auto;background:var(--bg-surface);border:1px solid var(--border-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-elevated);z-index:300;display:none;}
+.autocomplete-list{position:absolute;top:calc(100% + 4px);left:0;width:300px;max-height:280px;overflow-y:auto;background:var(--bg-surface);border:1px solid var(--border-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-elevated);z-index:300;display:none;}
 .autocomplete-list.open{display:block;}
-.autocomplete-header{padding:7px 12px 5px;font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.autocomplete-header{padding:7px 12px 5px;font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg-surface);}
 .autocomplete-header-count{font-weight:400;color:var(--text-dim);}
-.autocomplete-item{padding:8px 12px;font-size:13px;cursor:pointer;display:flex;flex-direction:column;gap:2px;transition:background 0.1s;}
+.autocomplete-item{padding:8px 12px;font-size:13px;cursor:pointer;display:flex;flex-direction:column;gap:2px;transition:background 0.1s;border-bottom:1px solid var(--border);}
+.autocomplete-item:last-child{border-bottom:none;}
 .autocomplete-item:hover,.autocomplete-item.ac-active{background:var(--bg-card-hover);}
 .autocomplete-item-name{color:var(--text-primary);font-weight:500;}
 .autocomplete-item-email{font-size:11px;color:var(--text-muted);font-family:var(--font-mono);}
 .autocomplete-item mark{background:none;color:var(--tab-accent);font-weight:700;}
-.autocomplete-empty{padding:12px;font-size:12px;color:var(--text-muted);font-style:italic;text-align:center;}
+.autocomplete-empty{padding:14px 12px;font-size:12px;color:var(--text-muted);font-style:italic;text-align:center;}
 .select-input{background:var(--bg-input);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:6px 12px;font-family:var(--font-body);font-size:13px;color:var(--text-primary);outline:none;cursor:pointer;}
 .select-input option{background:var(--bg-card);color:var(--text-primary);}
 .lead-context-banner{margin-bottom:16px;padding:10px 16px;background:var(--bg-card);border:1px solid var(--border-strong);border-left:3px solid var(--tab-accent);border-radius:var(--radius-md);display:none;align-items:center;justify-content:space-between;gap:12px;}
@@ -274,6 +275,7 @@ td.primary{color:var(--text-primary);font-weight:500;}
       <button class="qf-btn" data-qf="this-week" onclick="setQuickFilter('this-week',this)">This Week</button>
       <button class="qf-btn" data-qf="last-week" onclick="setQuickFilter('last-week',this)">Last Week</button>
     </div>
+    <!-- Agent filter bar -->
     <div class="agent-filter-bar">
       <span class="agent-filter-label">Filters:</span>
       <div class="search-wrap">
@@ -284,7 +286,6 @@ td.primary{color:var(--text-primary);font-weight:500;}
           onfocus="onSearchFocus()"
           onkeydown="onSearchKeyDown(event)"
           autocomplete="off">
-        <!-- Autocomplete dropdown -->
         <div class="autocomplete-list" id="autocompleteList"></div>
       </div>
       <select class="select-input" id="leadFilter" onchange="applyLeadFilter()" style="display:none">
@@ -316,6 +317,7 @@ td.primary{color:var(--text-primary);font-weight:500;}
         Export CSV
       </button>
     </div>
+    <!-- Lead context banner -->
     <div class="lead-context-banner" id="leadContextBanner">
       <div class="lead-context-info">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6"/></svg>
@@ -400,14 +402,23 @@ let CHARTS={trend:null,status:null,wow:null,top:null};
 let pendingWisp=null,pendingRoster=null,currentTableRows=[];
 const BRAND={all:'#0A8080',tp:'#EF523C',tu:'#2BABAD',un:'#BABABC'};
 
-// ── Autocomplete state ──
+// ── Autocomplete ──
 let acPool=[],acItems=[],acIndex=-1;
 
-// The pool the autocomplete draws from — same scope as the table
 function refreshAcPool(){
   let agents=UI.activeTab==='all'?STATE.agents:STATE.agents.filter(a=>a.team===UI.activeTab);
   if(UI.leadFilter&&UI.leadFilter!=='all')agents=agents.filter(a=>a.lead===UI.leadFilter);
   acPool=agents;
+}
+
+function updateSearchPlaceholder(){
+  const input=document.getElementById('searchInput');
+  if(UI.leadFilter&&UI.leadFilter!=='all'){
+    const count=STATE.agents.filter(a=>a.team===UI.activeTab&&a.lead===UI.leadFilter).length;
+    input.placeholder=`Search ${count} agents under ${UI.leadFilter}…`;
+  } else {
+    input.placeholder='Search agents…';
+  }
 }
 
 function onSearchFocus(){
@@ -419,7 +430,6 @@ function onSearchInput(){
   refreshAcPool();
   const q=document.getElementById('searchInput').value.trim();
   buildAutocomplete(q);
-  // Live-filter table as user types
   UI.searchQuery=q.toLowerCase();
   UI.page=1;
   renderTable(getAgentsForTab(),getFilteredDates());
@@ -429,28 +439,26 @@ function hlText(text,query){
   if(!query)return escHtml(text);
   const idx=text.toLowerCase().indexOf(query.toLowerCase());
   if(idx<0)return escHtml(text);
-  return escHtml(text.slice(0,idx))
-    +'<mark>'+escHtml(text.slice(idx,idx+query.length))+'</mark>'
-    +escHtml(text.slice(idx+query.length));
+  return escHtml(text.slice(0,idx))+'<mark>'+escHtml(text.slice(idx,idx+query.length))+'</mark>'+escHtml(text.slice(idx+query.length));
 }
 
 function buildAutocomplete(q){
   const list=document.getElementById('autocompleteList');
   const lower=q.toLowerCase();
-  // No query + lead selected → show all lead's agents (up to 25)
-  // No query + no lead → show first 8 of current pool
-  // Has query → filter pool, show top 8 matches
-  const maxItems=(q?8:(UI.leadFilter&&UI.leadFilter!=='all'?25:8));
+  const isLeadScoped=UI.leadFilter&&UI.leadFilter!=='all';
+  // With lead selected show all (up to 30), else cap at 8
+  const maxItems=q?10:(isLeadScoped?30:8);
   const matches=q
     ?acPool.filter(a=>a.name.toLowerCase().includes(lower)||a.email.toLowerCase().includes(lower)).slice(0,maxItems)
     :acPool.slice(0,maxItems);
 
   acItems=matches;acIndex=-1;
 
-  const scopeLabel=UI.leadFilter&&UI.leadFilter!=='all'
-    ?`${UI.leadFilter} (${acPool.length} agents)`
-    :`${acPool.length} agents in view`;
-  const header=`<div class="autocomplete-header"><span>${q?`Matching "${escHtml(q)}"`:scopeLabel}</span><span class="autocomplete-header-count">${matches.length} shown</span></div>`;
+  const headerLabel=isLeadScoped&&!q
+    ?`${UI.leadFilter} — ${acPool.length} agents`
+    :q?`Matching "${escHtml(q)}"`:(`${acPool.length} agents in view`);
+
+  const header=`<div class="autocomplete-header"><span>${headerLabel}</span><span class="autocomplete-header-count">${matches.length}${acPool.length>maxItems&&!q?` of ${acPool.length}`:''} shown</span></div>`;
 
   if(!matches.length){
     list.innerHTML=header+`<div class="autocomplete-empty">No agents found</div>`;
@@ -487,7 +495,6 @@ function onSearchKeyDown(e){
   else if(e.key==='Escape'){closeAutocomplete();}
 }
 
-// Close autocomplete when clicking outside
 document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))closeAutocomplete();});
 
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -565,7 +572,7 @@ function updateLeadFilter(){
   const col=document.getElementById('leadColHeader');
   sel.style.display=showLead?'':'none';
   col.style.display=showLead?'':'none';
-  if(!showLead){UI.leadFilter='all';sel.value='all';updateLeadBanner();return;}
+  if(!showLead){UI.leadFilter='all';sel.value='all';updateLeadBanner();updateSearchPlaceholder();return;}
   const leads=new Set();
   STATE.agents.filter(a=>a.team===UI.activeTab).forEach(a=>{if(a.lead)leads.add(a.lead);});
   const sorted=[...leads].sort();
@@ -573,15 +580,16 @@ function updateLeadFilter(){
   sel.value=UI.leadFilter&&sorted.includes(UI.leadFilter)?UI.leadFilter:'all';
   UI.leadFilter=sel.value;
   updateLeadBanner();
+  updateSearchPlaceholder();
 }
 
 function applyLeadFilter(){
   UI.leadFilter=document.getElementById('leadFilter').value;
-  // Reset search when lead changes so autocomplete pool is fresh
   document.getElementById('searchInput').value='';
   UI.searchQuery='';
   UI.page=1;
   updateLeadBanner();
+  updateSearchPlaceholder();
   renderAll();
 }
 
@@ -592,6 +600,7 @@ function clearLeadFilter(){
   UI.searchQuery='';
   UI.page=1;
   updateLeadBanner();
+  updateSearchPlaceholder();
   renderAll();
 }
 
