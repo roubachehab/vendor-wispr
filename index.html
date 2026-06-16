@@ -76,16 +76,13 @@ body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-pri
 .qf-btn:hover{background:var(--bg-card-hover);color:var(--text-primary);border-color:var(--tab-accent);}
 .qf-btn.active{background:var(--accent-all-dim);color:var(--accent-all);border-color:var(--accent-all);}
 .period-summary{font-size:12px;font-weight:500;color:var(--text-secondary);font-family:var(--font-mono);}
-/* Agent filter bar */
 .agent-filter-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);}
 .agent-filter-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;white-space:nowrap;margin-right:4px;}
-/* Search + autocomplete */
 .search-wrap{position:relative;}
 .search-input{background:var(--bg-input);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:6px 12px 6px 30px;font-family:var(--font-body);font-size:13px;color:var(--text-primary);outline:none;width:260px;transition:border-color 0.15s;}
 .search-input::placeholder{color:var(--text-muted);}
 .search-input:focus{border-color:var(--tab-accent);}
 .search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;color:var(--text-muted);pointer-events:none;}
-/* Autocomplete dropdown */
 .autocomplete-list{position:absolute;top:calc(100% + 4px);left:0;width:320px;max-height:300px;overflow-y:auto;background:var(--bg-surface);border:1px solid var(--border-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-elevated);z-index:300;display:none;}
 .autocomplete-list.open{display:block;}
 .autocomplete-header{padding:7px 12px 5px;font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg-surface);}
@@ -97,9 +94,16 @@ body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-pri
 .autocomplete-item-email{font-size:11px;color:var(--text-muted);font-family:var(--font-mono);}
 .autocomplete-item mark{background:none;color:var(--tab-accent);font-weight:700;}
 .autocomplete-empty{padding:14px 12px;font-size:12px;color:var(--text-muted);font-style:italic;text-align:center;}
+/* Agent context banner — shown when a specific agent is selected via search */
+.agent-context-banner{margin-bottom:16px;padding:10px 16px;background:var(--bg-card);border:1px solid var(--border-strong);border-left:3px solid var(--tab-accent);border-radius:var(--radius-md);display:none;align-items:center;justify-content:space-between;gap:12px;}
+.agent-context-banner.visible{display:flex;}
+.agent-context-info{display:flex;align-items:center;gap:10px;}
+.agent-context-name{font-size:14px;font-weight:600;color:var(--text-primary);}
+.agent-context-sub{font-size:12px;color:var(--text-muted);}
+.agent-context-clear{font-size:12px;color:var(--text-muted);background:none;border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:4px 10px;cursor:pointer;font-family:var(--font-body);transition:all 0.15s;}
+.agent-context-clear:hover{color:var(--text-primary);border-color:var(--text-muted);}
 .select-input{background:var(--bg-input);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:6px 12px;font-family:var(--font-body);font-size:13px;color:var(--text-primary);outline:none;cursor:pointer;}
 .select-input option{background:var(--bg-card);color:var(--text-primary);}
-/* Lead context banner */
 .lead-context-banner{margin-bottom:16px;padding:10px 16px;background:var(--bg-card);border:1px solid var(--border-strong);border-left:3px solid var(--tab-accent);border-radius:var(--radius-md);display:none;align-items:center;justify-content:space-between;gap:12px;}
 .lead-context-banner.visible{display:flex;}
 .lead-context-info{display:flex;align-items:center;gap:10px;}
@@ -277,7 +281,6 @@ td.primary{color:var(--text-primary);font-weight:500;}
       <button class="qf-btn" data-qf="this-week" onclick="setQuickFilter('this-week',this)">This Week</button>
       <button class="qf-btn" data-qf="last-week" onclick="setQuickFilter('last-week',this)">Last Week</button>
     </div>
-    <!-- Agent filter bar with autocomplete search -->
     <div class="agent-filter-bar">
       <span class="agent-filter-label">Filters:</span>
       <div class="search-wrap">
@@ -319,6 +322,17 @@ td.primary{color:var(--text-primary);font-weight:500;}
         Export CSV
       </button>
     </div>
+    <!-- Agent context banner: shown when a specific agent is selected -->
+    <div class="agent-context-banner" id="agentContextBanner">
+      <div class="agent-context-info">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6"/></svg>
+        <div>
+          <div class="agent-context-name" id="agentContextName"></div>
+          <div class="agent-context-sub">Viewing individual agent metrics — Top Performers shows full team context</div>
+        </div>
+      </div>
+      <button class="agent-context-clear" onclick="clearAgentFilter()">Show all agents</button>
+    </div>
     <!-- Lead context banner -->
     <div class="lead-context-banner" id="leadContextBanner">
       <div class="lead-context-info">
@@ -338,12 +352,12 @@ td.primary{color:var(--text-primary);font-weight:500;}
       <div class="kpi-card"><div class="kpi-label">MTD Total</div><div class="kpi-value" id="kpi-mtd">—</div><div class="kpi-sub"><span class="delta flat" id="kpi-mtd-delta">—</span><span>vs same period last month</span></div></div>
     </div>
     <div class="charts-grid">
-      <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Usage Trend</div><div class="chart-subtitle">Words dictated over time</div></div><span class="chart-badge" id="trendBadge">Daily</span></div><div class="canvas-wrap" style="height:220px"><canvas id="trendChart"></canvas></div></div>
+      <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Usage Trend</div><div class="chart-subtitle" id="trendSubtitle">Words dictated over time</div></div><span class="chart-badge" id="trendBadge">Daily</span></div><div class="canvas-wrap" style="height:220px"><canvas id="trendChart"></canvas></div></div>
       <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Agent Status</div><div class="chart-subtitle">Active vs inactive in period</div></div></div><div class="canvas-wrap" style="height:180px"><canvas id="statusChart"></canvas></div><div id="statusLegend" style="margin-top:16px;display:flex;gap:16px;justify-content:center;font-size:12px;color:var(--text-secondary);"></div></div>
     </div>
     <div class="charts-grid-bottom">
-      <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Week-over-Week</div><div class="chart-subtitle">Total words — last 8 weeks</div></div><span class="chart-badge">8 weeks</span></div><div class="canvas-wrap" style="height:200px"><canvas id="wowChart"></canvas></div></div>
-      <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Top Performers</div><div class="chart-subtitle">Highest usage in period</div></div><span class="chart-badge">Top 10</span></div><div class="canvas-wrap" style="height:200px"><canvas id="topChart"></canvas></div></div>
+      <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Week-over-Week</div><div class="chart-subtitle" id="wowSubtitle">Total words — last 8 weeks</div></div><span class="chart-badge">8 weeks</span></div><div class="canvas-wrap" style="height:200px"><canvas id="wowChart"></canvas></div></div>
+      <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Top Performers</div><div class="chart-subtitle" id="topSubtitle">Highest usage in period</div></div><span class="chart-badge">Top 10</span></div><div class="canvas-wrap" style="height:200px"><canvas id="topChart"></canvas></div></div>
     </div>
     <div class="table-section">
       <div class="table-card">
@@ -406,6 +420,8 @@ const BRAND={all:'#0A8080',tp:'#EF523C',tu:'#2BABAD',un:'#BABABC'};
 
 // ── Autocomplete ──
 let acPool=[],acItems=[],acIndex=-1;
+// Track whether search is a precise single-agent selection (affects charts)
+let UI_agentSelected=false;
 
 function refreshAcPool(){
   let agents=UI.activeTab==='all'?STATE.agents:STATE.agents.filter(a=>a.team===UI.activeTab);
@@ -433,8 +449,10 @@ function onSearchInput(){
   const q=document.getElementById('searchInput').value.trim();
   buildAutocomplete(q);
   UI.searchQuery=q.toLowerCase();
+  UI_agentSelected=false; // typing = not a precise selection
+  updateAgentBanner();
   UI.page=1;
-  renderTable(getAgentsForTab(),getFilteredDates());
+  renderAll();
 }
 
 function hlText(text,query){
@@ -475,9 +493,33 @@ function selectAutocomplete(idx){
   const input=document.getElementById('searchInput');
   input.value=a.name;
   UI.searchQuery=a.name.toLowerCase();
+  UI_agentSelected=true; // precise single-agent selection
   UI.page=1;
   closeAutocomplete();
-  renderTable(getAgentsForTab(),getFilteredDates());
+  updateAgentBanner();
+  renderAll(); // full re-render including KPIs and charts
+}
+
+function clearAgentFilter(){
+  document.getElementById('searchInput').value='';
+  UI.searchQuery='';
+  UI_agentSelected=false;
+  UI.page=1;
+  updateAgentBanner();
+  renderAll();
+}
+
+function updateAgentBanner(){
+  const banner=document.getElementById('agentContextBanner');
+  const nameEl=document.getElementById('agentContextName');
+  if(UI_agentSelected&&UI.searchQuery){
+    // Find the matching agent for display name
+    const match=STATE.agents.find(a=>a.name.toLowerCase()===UI.searchQuery);
+    nameEl.textContent=match?match.name:UI.searchQuery;
+    banner.classList.add('visible');
+  } else {
+    banner.classList.remove('visible');
+  }
 }
 
 function closeAutocomplete(){
@@ -577,19 +619,15 @@ function updateLeadFilter(){
   sel.innerHTML='<option value="all">All leads</option>'+sorted.map(l=>`<option value="${escHtml(l)}">${escHtml(l)}</option>`).join('');
   sel.value=UI.leadFilter&&sorted.includes(UI.leadFilter)?UI.leadFilter:'all';
   UI.leadFilter=sel.value;
-  updateLeadBanner();
-  refreshAcPool();
-  updateSearchPlaceholder();
+  updateLeadBanner();refreshAcPool();updateSearchPlaceholder();
 }
 
 function applyLeadFilter(){
   UI.leadFilter=document.getElementById('leadFilter').value;
   document.getElementById('searchInput').value='';
-  UI.searchQuery='';
+  UI.searchQuery='';UI_agentSelected=false;
   UI.page=1;
-  updateLeadBanner();
-  refreshAcPool();
-  updateSearchPlaceholder();
+  updateLeadBanner();updateAgentBanner();refreshAcPool();updateSearchPlaceholder();
   renderAll();
 }
 
@@ -597,11 +635,9 @@ function clearLeadFilter(){
   UI.leadFilter='all';
   document.getElementById('leadFilter').value='all';
   document.getElementById('searchInput').value='';
-  UI.searchQuery='';
+  UI.searchQuery='';UI_agentSelected=false;
   UI.page=1;
-  updateLeadBanner();
-  refreshAcPool();
-  updateSearchPlaceholder();
+  updateLeadBanner();updateAgentBanner();refreshAcPool();updateSearchPlaceholder();
   renderAll();
 }
 
@@ -622,11 +658,11 @@ function updateLeadBanner(){
 
 function switchTab(tab){
   UI.activeTab=tab;UI.leadFilter='all';UI.page=1;
-  document.getElementById('searchInput').value='';UI.searchQuery='';
+  document.getElementById('searchInput').value='';UI.searchQuery='';UI_agentSelected=false;
   document.querySelectorAll('.tab-item').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
   const colorMap={all:'--accent-all',tp:'--accent-tp',tu:'--accent-tu',un:'--accent-un'};
   document.documentElement.style.setProperty('--tab-accent',`var(${colorMap[tab]})`);
-  updateLeadFilter();
+  updateLeadFilter();updateAgentBanner();
   renderAll();
 }
 
@@ -644,9 +680,17 @@ function applyDateRange(){
   UI.page=1;renderAll();
 }
 
+// Returns agents scoped to tab + lead filter + search query (for KPIs/charts/table)
 function getAgentsForTab(){
   let agents=UI.activeTab==='all'?STATE.agents:STATE.agents.filter(a=>a.team===UI.activeTab);
   if(UI.leadFilter&&UI.leadFilter!=='all')agents=agents.filter(a=>a.lead===UI.leadFilter);
+  return agents;
+}
+
+// Returns agents further filtered by search query — used for KPIs + trend/status/WoW charts
+function getAgentsForView(){
+  let agents=getAgentsForTab();
+  if(UI.searchQuery)agents=agents.filter(a=>a.name.toLowerCase().includes(UI.searchQuery)||a.email.toLowerCase().includes(UI.searchQuery));
   return agents;
 }
 
@@ -687,11 +731,25 @@ function aggregateDates(dates){
 }
 
 function renderAll(){
-  const agents=getAgentsForTab(),dates=getFilteredDates();
-  if(!dates.length||!agents.length)return;
+  const viewAgents=getAgentsForView(); // search-filtered: KPIs + trend/status/WoW
+  const tabAgents=getAgentsForTab();   // lead-scoped only: Top Performers always shows full team
+  const dates=getFilteredDates();
+  if(!dates.length||!tabAgents.length)return;
   const el=document.getElementById('periodSummary');
   if(el)el.textContent=fmtDate(dates[0])+' — '+fmtDate(dates[dates.length-1])+' ('+dates.length+' days)';
-  renderKPIs(agents,dates);renderTrendChart(agents,dates);renderStatusChart(agents,dates);renderWoWChart(agents);renderTopChart(agents,dates);renderTable(agents,dates);
+
+  // Update chart subtitles when agent is selected
+  const agentName=UI_agentSelected&&viewAgents.length===1?viewAgents[0].name:null;
+  document.getElementById('trendSubtitle').textContent=agentName?`${agentName}'s words over time`:'Words dictated over time';
+  document.getElementById('wowSubtitle').textContent=agentName?`${agentName} — last 8 weeks`:'Total words — last 8 weeks';
+  document.getElementById('topSubtitle').textContent='Highest usage in period';
+
+  renderKPIs(viewAgents,dates);
+  renderTrendChart(viewAgents,dates);
+  renderStatusChart(viewAgents,dates);
+  renderWoWChart(viewAgents);
+  renderTopChart(tabAgents,dates); // always full tab scope
+  renderTable(viewAgents,dates);
 }
 
 function getCurrentAndPriorWeek(){
@@ -784,8 +842,10 @@ function filterTable(){
   UI.statusFilter=document.getElementById('statusFilter').value;
   UI.usageFilter=document.getElementById('usageFilter').value;
   UI.sortBy=document.getElementById('sortSelect').value;
+  UI_agentSelected=false;
+  updateAgentBanner();
   UI.page=1;
-  renderTable(getAgentsForTab(),getFilteredDates());
+  renderAll();
 }
 
 function buildRows(agents,allDates){
@@ -811,7 +871,6 @@ function buildRows(agents,allDates){
     const usageLevel=getUsageLevel(words,dates.length);
     return{...a,words,activeDays,avgDay,peakDay,daysSince,trendPct,trendDir,usageLevel,teamLabel:tl[a.team]||a.team};
   });
-  if(UI.searchQuery)rows=rows.filter(r=>r.name.toLowerCase().includes(UI.searchQuery)||r.email.toLowerCase().includes(UI.searchQuery)||(r.lead||'').toLowerCase().includes(UI.searchQuery));
   if(UI.statusFilter==='active')rows=rows.filter(r=>r.activeDays>0);
   if(UI.statusFilter==='inactive')rows=rows.filter(r=>r.activeDays===0);
   if(UI.usageFilter!=='all')rows=rows.filter(r=>r.usageLevel===UI.usageFilter);
@@ -880,7 +939,7 @@ function renderTable(agents,allDates){
   document.getElementById('tableSubtitle').textContent=`${total} agents · ${dates.length} days · ${rows.filter(r=>r.activeDays>0).length} active`;
 }
 
-function goPage(p){UI.page=p;renderTable(getAgentsForTab(),getFilteredDates());}
+function goPage(p){UI.page=p;const v=getAgentsForView();renderTable(v,getFilteredDates());}
 
 function downloadCSV(){
   if(!currentTableRows.length){toast('No data to export','info');return;}
