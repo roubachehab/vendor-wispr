@@ -100,8 +100,8 @@ body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-pri
 .table-header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
 .table-title{font-size:14px;font-weight:600;color:var(--text-primary);}
 .table-subtitle{font-size:11px;color:var(--text-muted);margin-top:2px;}
-.table-controls{display:flex;align-items:center;gap:8px;}
-.search-input{background:var(--bg-input);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:7px 12px 7px 32px;font-family:var(--font-body);font-size:13px;color:var(--text-primary);outline:none;width:220px;transition:border-color 0.15s;}
+.table-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.search-input{background:var(--bg-input);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:7px 12px 7px 32px;font-family:var(--font-body);font-size:13px;color:var(--text-primary);outline:none;width:200px;transition:border-color 0.15s;}
 .search-input::placeholder{color:var(--text-muted);}
 .search-input:focus{border-color:var(--tab-accent);}
 .search-wrap{position:relative;}
@@ -141,6 +141,10 @@ td.primary{color:var(--text-primary);font-weight:500;}
 .trend-down{background:rgba(239,68,68,0.12);color:#ef4444;}
 .trend-flat{background:var(--bg-input);color:var(--text-muted);}
 .td-mono{font-family:var(--font-mono);font-size:var(--table-fs);color:var(--text-secondary);}
+/* Table period notice banner */
+.table-period-notice{padding:8px 24px;background:rgba(10,128,128,0.08);border-bottom:1px solid var(--border);font-size:12px;color:var(--text-secondary);display:none;align-items:center;gap:6px;}
+.table-period-notice.visible{display:flex;}
+.table-period-notice strong{color:var(--text-primary);}
 .pagination{padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--text-muted);}
 .page-btns{display:flex;gap:4px;}
 .page-btn{padding:5px 10px;border-radius:var(--radius-sm);background:none;border:1px solid var(--border-strong);color:var(--text-secondary);font-size:12px;font-family:var(--font-body);cursor:pointer;transition:all 0.1s;}
@@ -272,6 +276,10 @@ td.primary{color:var(--text-primary);font-weight:500;}
           <div><div class="table-title">Agent Breakdown</div><div class="table-subtitle" id="tableSubtitle">All agents in selected period</div></div>
           <div class="table-controls">
             <div class="search-wrap"><svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10.5 10.5 3 3"/></svg><input type="search" class="search-input" id="searchInput" placeholder="Search agents…" oninput="filterTable()"></div>
+            <!-- Lead filter — shown only on TP and TU tabs -->
+            <select class="select-input" id="leadFilter" onchange="filterTable()" style="display:none">
+              <option value="all">All leads</option>
+            </select>
             <select class="select-input" id="statusFilter" onchange="filterTable()">
               <option value="all">All statuses</option>
               <option value="active">Active only</option>
@@ -288,6 +296,7 @@ td.primary{color:var(--text-primary);font-weight:500;}
               <option value="words-desc">Words ↓</option>
               <option value="words-asc">Words ↑</option>
               <option value="name-asc">Name A–Z</option>
+              <option value="lead-asc">Lead A–Z</option>
               <option value="active-days-desc">Active days ↓</option>
               <option value="days-since-desc">Days since active ↓</option>
               <option value="trend-desc">Trend ↓</option>
@@ -295,11 +304,17 @@ td.primary{color:var(--text-primary);font-weight:500;}
             <button class="btn btn-ghost" onclick="downloadCSV()"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3M2 12h12"/></svg>Export CSV</button>
           </div>
         </div>
+        <!-- Period notice: shown when Weekly or Monthly mode narrows the table window -->
+        <div class="table-period-notice" id="tablePeriodNotice">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3.5l2 2"/></svg>
+          <span id="tablePeriodNoticeText"></span>
+        </div>
         <div class="table-scroll">
           <table>
-            <thead><tr>
+            <thead id="tableHead"><tr>
               <th>Agent</th>
               <th>Team</th>
+              <th id="leadColHeader" style="display:none">Team Lead</th>
               <th data-tip="Based on avg words/day over all days in the period. High ≥500 · Medium 150–499 · Low 1–149 · None 0">Usage</th>
               <th class="sorted">Words ↓</th>
               <th data-tip="Average words on days the agent was active (excludes zero days)">Avg / Day</th>
@@ -323,7 +338,7 @@ td.primary{color:var(--text-primary);font-weight:500;}
     <div class="drawer-desc">Upload a new Wispr export to merge with existing history, or a new roster to update team assignments. Data is saved to GitHub so all team members see the same view.</div>
     <div class="drawer-grid">
       <div><div id="wispDropZone" class="upload-zone" onclick="document.getElementById(&quot;wispFileInput&quot;).click()" ondragover="handleDragOver(event,&quot;wispDropZone&quot;)" ondragleave="handleDragLeave(&quot;wispDropZone&quot;)" ondrop="handleDrop(event,&quot;wisp&quot;)"><div class="upload-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3v10M6 7l4-4 4 4M3 15h14"/></svg></div><div class="upload-zone-title">Wispr Usage Export</div><div class="upload-zone-sub" id="wispZoneSub">Drop CSV here or click to browse</div><span class="upload-zone-hint">Date, User, User email, Words dictated, Dictations</span></div><input type="file" id="wispFileInput" accept=".csv" style="display:none" onchange="handleFileSelect(event,&quot;wisp&quot;)"></div>
-      <div><div id="rosterDropZone" class="upload-zone" onclick="document.getElementById(&quot;rosterFileInput&quot;).click()" ondragover="handleDragOver(event,&quot;rosterDropZone&quot;)" ondragleave="handleDragLeave(&quot;rosterDropZone&quot;)" ondrop="handleDrop(event,&quot;roster&quot;)"><div class="upload-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="14" height="16" rx="2"/><path d="M7 7h6M7 11h6M7 15h3"/></svg></div><div class="upload-zone-title">Vendor Roster</div><div class="upload-zone-sub" id="rosterZoneSub">Drop CSV here or click to browse</div><span class="upload-zone-hint">Name, Email, Team</span></div><input type="file" id="rosterFileInput" accept=".csv" style="display:none" onchange="handleFileSelect(event,&quot;roster&quot;)"></div>
+      <div><div id="rosterDropZone" class="upload-zone" onclick="document.getElementById(&quot;rosterFileInput&quot;).click()" ondragover="handleDragOver(event,&quot;rosterDropZone&quot;)" ondragleave="handleDragLeave(&quot;rosterDropZone&quot;)" ondrop="handleDrop(event,&quot;roster&quot;)"><div class="upload-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="14" height="16" rx="2"/><path d="M7 7h6M7 11h6M7 15h3"/></svg></div><div class="upload-zone-title">Vendor Roster</div><div class="upload-zone-sub" id="rosterZoneSub">Drop CSV here or click to browse</div><span class="upload-zone-hint">Name, Email, Team, Team Lead</span></div><input type="file" id="rosterFileInput" accept=".csv" style="display:none" onchange="handleFileSelect(event,&quot;roster&quot;)"></div>
       <div class="token-zone"><div class="token-label">GitHub Personal Access Token</div><div class="token-desc">Required once per browser. Create a token with <code style="font-family:var(--font-mono);background:var(--bg-input);padding:1px 5px;border-radius:3px">repo</code> scope in GitHub → Settings → Developer settings → Personal access tokens.</div><div class="token-status" id="tokenStatus"><span>No token saved</span></div><input type="password" class="token-input" id="githubToken" placeholder="Paste token to update…" oninput="saveToken()"><div style="font-size:11px;color:var(--text-muted)">Saved in your browser only. Never committed to the repo.</div></div>
     </div>
     <div class="drawer-actions">
@@ -335,8 +350,8 @@ td.primary{color:var(--text-primary);font-weight:500;}
 
 <script>
 const REPO_OWNER='roubachehab',REPO_NAME='vendor-wispr',DATA_PATH='data/dashboard.json';
-let STATE={agents:[],roster:{},allDates:[],lastUpdated:null};
-let UI={activeTab:'all',period:'daily',dateFrom:null,dateTo:null,searchQuery:'',statusFilter:'all',usageFilter:'all',sortBy:'words-desc',page:1,pageSize:25};
+let STATE={agents:[],roster:{},leads:{},allDates:[],lastUpdated:null};
+let UI={activeTab:'all',period:'daily',dateFrom:null,dateTo:null,searchQuery:'',leadFilter:'all',statusFilter:'all',usageFilter:'all',sortBy:'words-desc',page:1,pageSize:25};
 let CHARTS={trend:null,status:null,wow:null,top:null};
 let pendingWisp=null,pendingRoster=null,currentTableRows=[];
 const BRAND={all:'#0A8080',tp:'#EF523C',tu:'#2BABAD',un:'#BABABC'};
@@ -347,6 +362,22 @@ function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
 function getLatestDate(){return STATE.allDates.length?STATE.allDates[STATE.allDates.length-1]:toISO(new Date());}
 function getEarliestDate(){return STATE.allDates.length?STATE.allDates[0]:toISO(new Date());}
 function getMondayOf(d){const day=d.getDay(),offset=day===0?6:day-1;return addDays(d,-offset);}
+
+// ── Feature 2: compute the table's effective date window based on period mode ──
+// Daily → full selected range. Weekly → current week within range. Monthly → current month.
+function getTableDates(allFilteredDates){
+  if(UI.period==='daily'||!allFilteredDates.length)return allFilteredDates;
+  const latest=localDate(UI.dateTo);
+  if(UI.period==='weekly'){
+    const mon=getMondayOf(latest),monStr=toISO(mon),toStr=UI.dateTo;
+    return allFilteredDates.filter(d=>d>=monStr&&d<=toStr);
+  }
+  if(UI.period==='monthly'){
+    const monthStart=toISO(new Date(latest.getFullYear(),latest.getMonth(),1));
+    return allFilteredDates.filter(d=>d>=monthStart&&d<=UI.dateTo);
+  }
+  return allFilteredDates;
+}
 
 function getQuickRange(preset){
   const latestStr=getLatestDate(),latest=localDate(latestStr);
@@ -380,7 +411,7 @@ async function boot(){
 }
 
 function applyData(data){
-  STATE.agents=data.agents||[];STATE.roster=data.roster||{};STATE.allDates=data.allDates||[];STATE.lastUpdated=data.lastUpdated||null;
+  STATE.agents=data.agents||[];STATE.roster=data.roster||{};STATE.leads=data.leads||{};STATE.allDates=data.allDates||[];STATE.lastUpdated=data.lastUpdated||null;
   if(!STATE.allDates.length)return;
   const range=getQuickRange('this-month'),earliest=getEarliestDate();
   UI.dateFrom=range.from<earliest?earliest:range.from;
@@ -401,11 +432,29 @@ function updateTabPills(){
   ['all','tp','tu','un'].forEach(t=>{const el=document.getElementById('pill-'+t);if(el)el.textContent=(counts[t]||0).toLocaleString();});
 }
 
+// ── Feature 1: rebuild lead dropdown when tab changes ──
+function updateLeadFilter(){
+  const showLead=UI.activeTab==='tp'||UI.activeTab==='tu';
+  const sel=document.getElementById('leadFilter');
+  const col=document.getElementById('leadColHeader');
+  sel.style.display=showLead?'':'none';
+  col.style.display=showLead?'':'none';
+  if(!showLead){UI.leadFilter='all';sel.value='all';return;}
+  // Collect leads for this tab from loaded agents
+  const leads=new Set();
+  STATE.agents.filter(a=>a.team===UI.activeTab).forEach(a=>{if(a.lead)leads.add(a.lead);});
+  const sorted=[...leads].sort();
+  sel.innerHTML='<option value="all">All leads</option>'+sorted.map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('');
+  sel.value=UI.leadFilter&&sorted.includes(UI.leadFilter)?UI.leadFilter:'all';
+  UI.leadFilter=sel.value;
+}
+
 function switchTab(tab){
-  UI.activeTab=tab;UI.page=1;
+  UI.activeTab=tab;UI.leadFilter='all';UI.page=1;
   document.querySelectorAll('.tab-item').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
   const colorMap={all:'--accent-all',tp:'--accent-tp',tu:'--accent-tu',un:'--accent-un'};
   document.documentElement.style.setProperty('--tab-accent',`var(${colorMap[tab]})`);
+  updateLeadFilter();
   renderAll();
 }
 
@@ -555,6 +604,7 @@ function renderTopChart(agents,dates){
 
 function filterTable(){
   UI.searchQuery=document.getElementById('searchInput').value.toLowerCase();
+  UI.leadFilter=document.getElementById('leadFilter').value;
   UI.statusFilter=document.getElementById('statusFilter').value;
   UI.usageFilter=document.getElementById('usageFilter').value;
   UI.sortBy=document.getElementById('sortSelect').value;
@@ -562,7 +612,9 @@ function filterTable(){
   renderTable(getAgentsForTab(),getFilteredDates());
 }
 
-function buildRows(agents,dates){
+function buildRows(agents,allDates){
+  // Feature 2: narrow dates for table based on period mode
+  const dates=getTableDates(allDates);
   const tl={tp:'Teleperformance',tu:'TaskUs',un:'Unassigned'};
   const last7=STATE.allDates.slice(-7);
   const prev7=STATE.allDates.slice(-14,-7);
@@ -582,9 +634,11 @@ function buildRows(agents,dates){
     if(prior7>0){trendPct=((curr7-prior7)/prior7)*100;trendDir=trendPct>5?'up':trendPct<-5?'down':'flat';}
     else if(curr7>0){trendDir='up';trendPct=100;}
     const usageLevel=getUsageLevel(words,dates.length);
-    return{...a,words,activeDays,avgDay,peakDay,daysSince,trendPct,trendDir,usageLevel,teamLabel:tl[a.team]||a.team};
+    return{...a,words,activeDays,avgDay,peakDay,daysSince,trendPct,trendDir,usageLevel,teamLabel:tl[a.team]||a.team,tableDatesCount:dates.length};
   });
-  if(UI.searchQuery)rows=rows.filter(r=>r.name.toLowerCase().includes(UI.searchQuery)||r.email.toLowerCase().includes(UI.searchQuery));
+  // Feature 1: lead filter
+  if(UI.leadFilter!=='all')rows=rows.filter(r=>r.lead===UI.leadFilter);
+  if(UI.searchQuery)rows=rows.filter(r=>r.name.toLowerCase().includes(UI.searchQuery)||r.email.toLowerCase().includes(UI.searchQuery)||(r.lead||'').toLowerCase().includes(UI.searchQuery));
   if(UI.statusFilter==='active')rows=rows.filter(r=>r.activeDays>0);
   if(UI.statusFilter==='inactive')rows=rows.filter(r=>r.activeDays===0);
   if(UI.usageFilter!=='all')rows=rows.filter(r=>r.usageLevel===UI.usageFilter);
@@ -593,20 +647,36 @@ function buildRows(agents,dates){
     let av,bv;
     if(sk==='words'){av=a.words;bv=b.words;}
     else if(sk==='name'){av=a.name;bv=b.name;}
+    else if(sk==='lead'){av=a.lead||'';bv=b.lead||'';}
     else if(sk==='days'){av=a.daysSince??-1;bv=b.daysSince??-1;}
     else if(sk==='trend'){av=a.trendPct??-999;bv=b.trendPct??-999;}
     else{av=a.activeDays;bv=b.activeDays;}
     if(typeof av==='string')return sd==='asc'?av.localeCompare(bv):bv.localeCompare(av);
     return sd==='asc'?av-bv:bv-av;
   });
-  return rows;
+  return{rows,dates};
 }
 
-function renderTable(agents,dates){
-  const rows=buildRows(agents,dates);currentTableRows=rows;
+function renderTable(agents,allDates){
+  const{rows,dates}=buildRows(agents,allDates);
+  currentTableRows=rows;
+  const showLead=UI.activeTab==='tp'||UI.activeTab==='tu';
+  const colCount=showLead?9:8;
+
+  // Feature 2: period notice banner
+  const notice=document.getElementById('tablePeriodNotice');
+  const noticeText=document.getElementById('tablePeriodNoticeText');
+  if(UI.period!=='daily'&&dates.length>0&&dates.length<allDates.length){
+    const label=UI.period==='weekly'?'current week':'current month';
+    noticeText.innerHTML=`Table showing <strong>${label}</strong> totals (${fmtDate(dates[0])} — ${fmtDate(dates[dates.length-1])}, ${dates.length} days). Charts still reflect the full selected range.`;
+    notice.classList.add('visible');
+  } else {
+    notice.classList.remove('visible');
+  }
+
   const total=rows.length,start=(UI.page-1)*UI.pageSize,pageRows=rows.slice(start,start+UI.pageSize);
   const tbody=document.getElementById('tableBody');
-  if(!pageRows.length){tbody.innerHTML='<tr><td colspan="8" class="no-rows">No agents match your filters</td></tr>';}
+  if(!pageRows.length){tbody.innerHTML=`<tr><td colspan="${colCount}" class="no-rows">No agents match your filters</td></tr>`;}
   else{
     tbody.innerHTML=pageRows.map(r=>{
       const trendHTML=r.trendDir==='up'
@@ -618,9 +688,11 @@ function renderTable(agents,dates){
         :r.daysSince===0?`<span style="color:var(--green)">today</span>`
         :`<span style="color:${r.daysSince>14?'#ef4444':r.daysSince>7?'#f59e0b':'var(--text-secondary)'}">${r.daysSince}d ago</span>`;
       const tooltip=USAGE_TOOLTIPS[r.usageLevel]||'';
+      const leadCell=showLead?`<td>${esc(r.lead||'—')}</td>`:'';
       return`<tr>
         <td><div class="agent-cell"><span class="agent-name">${esc(r.name)}</span><span class="agent-email">${esc(r.email)}</span></div></td>
         <td><span class="team-badge ${r.team}">${r.teamLabel}</span></td>
+        ${leadCell}
         <td><span class="usage-badge ${usageClass(r.usageLevel)}" data-tooltip="${tooltip}">${r.usageLevel}</span></td>
         <td class="primary">${r.words>0?fmt(r.words):'—'}</td>
         <td class="td-mono">${r.avgDay>0?fmt(r.avgDay):'—'}</td>
@@ -644,9 +716,10 @@ function downloadCSV(){
   if(!currentTableRows.length){toast('No data to export','info');return;}
   const tabLabels={all:'All Agents',tp:'Teleperformance',tu:'TaskUs',un:'Unassigned'};
   const tabLabel=tabLabels[UI.activeTab]||UI.activeTab;
-  const headers=['Name','Email','Team','Usage','Words Dictated','Active Days','Avg Words/Day (active days)','7d Trend %','Peak Day Words','Days Since Last Active'];
+  const showLead=UI.activeTab==='tp'||UI.activeTab==='tu';
+  const headers=['Name','Email','Team',...(showLead?['Team Lead']:[]),'Usage','Words Dictated','Active Days','Avg Words/Day (active days)','7d Trend %','Peak Day Words','Days Since Last Active'];
   const csvRows=currentTableRows.map(r=>[
-    csvCell(r.name),csvCell(r.email),csvCell(r.teamLabel),csvCell(r.usageLevel),
+    csvCell(r.name),csvCell(r.email),csvCell(r.teamLabel),...(showLead?[csvCell(r.lead||'')]:[]),csvCell(r.usageLevel),
     r.words,r.activeDays,r.avgDay,
     r.trendPct!=null?Math.round(r.trendPct)+'%':'',
     r.peakDay||0,
@@ -662,7 +735,7 @@ function downloadCSV(){
 }
 
 function csvCell(v){const s=String(v||'');return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s;}
-function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function handleDragOver(e,id){e.preventDefault();document.getElementById(id).classList.add('drag-over');}
 function handleDragLeave(id){document.getElementById(id).classList.remove('drag-over');}
 function handleDrop(e,type){e.preventDefault();const zi=type==='wisp'?'wispDropZone':'rosterDropZone';document.getElementById(zi).classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f)parseFile(f,type);}
@@ -691,13 +764,22 @@ function parseWispr(rows){
   checkPublishReady();
 }
 
+// ── Updated roster parser: reads Team Lead column ──
 function parseRoster(rows){
-  const roster={};
-  rows.forEach(row=>{const email=(row['Email']||row['email']||'').toLowerCase().trim();const team=(row['Team']||row['team']||'').trim();if(!email||!email.includes('@gustocare.com'))return;roster[email]=/teleperformance/i.test(team)?'tp':/taskus/i.test(team)?'tu':'un';});
-  pendingRoster=roster;
+  const roster={},leads={};
+  rows.forEach(row=>{
+    const email=(row['Email']||row['email']||'').toLowerCase().trim();
+    const team=(row['Team']||row['team']||'').trim();
+    const lead=(row['Team Lead']||row['team lead']||row['TeamLead']||'').trim();
+    if(!email||!email.includes('@gustocare.com'))return;
+    const teamCode=/teleperformance/i.test(team)?'tp':/taskus/i.test(team)?'tu':'un';
+    roster[email]=teamCode;
+    if(lead)leads[email]=lead;
+  });
+  pendingRoster={roster,leads};
   document.getElementById('rosterDropZone').classList.add('done');
-  document.getElementById('rosterZoneSub').textContent=`✓ ${Object.keys(roster).length} agents mapped`;
-  toast(`Roster loaded: ${Object.keys(roster).length} agents`,'success');
+  document.getElementById('rosterZoneSub').textContent=`✓ ${Object.keys(roster).length} agents · ${Object.keys(leads).length} with leads`;
+  toast(`Roster loaded: ${Object.keys(roster).length} agents, ${Object.keys(leads).length} lead assignments`,'success');
   checkPublishReady();
 }
 
@@ -718,8 +800,15 @@ async function publishData(){
   if(!token){toast('GitHub token required to publish','error');return;}
   setLoading(true,'Merging and saving data…');
   try{
-    let merged=JSON.parse(JSON.stringify(STATE.agents)),roster={...STATE.roster},allDates=new Set(STATE.allDates);
-    if(pendingRoster)Object.assign(roster,pendingRoster);
+    let merged=JSON.parse(JSON.stringify(STATE.agents));
+    let roster={...STATE.roster};
+    let leads={...STATE.leads};
+    let allDates=new Set(STATE.allDates);
+
+    if(pendingRoster){
+      Object.assign(roster,pendingRoster.roster);
+      Object.assign(leads,pendingRoster.leads);
+    }
     if(pendingWisp){
       pendingWisp.dateCols.forEach(d=>allDates.add(d));
       const map={};merged.forEach(a=>{map[a.email]=a;});
@@ -728,18 +817,22 @@ async function publishData(){
         else{map[na.email]={...na};merged.push(map[na.email]);}
       });
     }
-    // ── ROSTER IS SOURCE OF TRUTH ──
-    // Strip any agent whose email is no longer in the roster.
-    // Runs on every publish — keeps dashboard in sync as team changes.
+
+    // Roster is source of truth — prune off-roster agents
     const rosterEmails=new Set(Object.keys(roster));
     const beforeCount=merged.length;
     merged=merged.filter(a=>rosterEmails.has(a.email));
     const removed=beforeCount-merged.length;
     if(removed>0)toast(`Removed ${removed} agent${removed>1?'s':''} not on current roster`,'info');
 
-    merged.forEach(a=>{a.team=roster[a.email]||'un';});
+    // Apply team + lead to every agent
+    merged.forEach(a=>{
+      a.team=roster[a.email]||'un';
+      a.lead=leads[a.email]||'';
+    });
+
     const sortedDates=[...allDates].sort();
-    const payload={agents:merged,roster,allDates:sortedDates,lastUpdated:new Date().toISOString()};
+    const payload={agents:merged,roster,leads,allDates:sortedDates,lastUpdated:new Date().toISOString()};
     let sha=null;
     try{const sr=await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_PATH}`,{headers:{Authorization:`token ${token}`,Accept:'application/vnd.github.v3+json'}});if(sr.ok){const j=await sr.json();sha=j.sha;}}catch(e){}
     const body={message:`Update dashboard data — ${new Date().toLocaleDateString()}`,content:btoa(unescape(encodeURIComponent(JSON.stringify(payload))))};
