@@ -70,24 +70,31 @@ body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-pri
 .date-input{background:none;border:none;color:var(--text-primary);font-family:var(--font-mono);font-size:12px;font-weight:500;cursor:pointer;outline:none;width:100px;}
 .date-input::-webkit-calendar-picker-indicator{filter:invert(0.7);cursor:pointer;}
 .date-sep{color:var(--text-muted);font-size:12px;}
-/* Quick filter row */
 .quick-filters{display:flex;align-items:center;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
 .quick-filter-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;margin-right:4px;white-space:nowrap;}
 .qf-btn{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;font-family:var(--font-body);cursor:pointer;transition:all 0.15s;border:1px solid var(--border-strong);background:var(--bg-card);color:var(--text-secondary);white-space:nowrap;}
 .qf-btn:hover{background:var(--bg-card-hover);color:var(--text-primary);border-color:var(--tab-accent);}
 .qf-btn.active{background:var(--accent-all-dim);color:var(--accent-all);border-color:var(--accent-all);}
 .period-summary{font-size:12px;font-weight:500;color:var(--text-secondary);font-family:var(--font-mono);}
-/* Agent filter bar — sits under Quick pills, above lead banner */
 .agent-filter-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);}
 .agent-filter-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;white-space:nowrap;margin-right:4px;}
-.search-input{background:var(--bg-input);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:6px 12px 6px 30px;font-family:var(--font-body);font-size:13px;color:var(--text-primary);outline:none;width:190px;transition:border-color 0.15s;}
+/* Autocomplete search */
+.search-wrap{position:relative;}
+.search-input{background:var(--bg-input);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:6px 12px 6px 30px;font-family:var(--font-body);font-size:13px;color:var(--text-primary);outline:none;width:220px;transition:border-color 0.15s;}
 .search-input::placeholder{color:var(--text-muted);}
 .search-input:focus{border-color:var(--tab-accent);}
-.search-wrap{position:relative;}
 .search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;color:var(--text-muted);pointer-events:none;}
+/* Autocomplete dropdown */
+.autocomplete-list{position:absolute;top:calc(100% + 4px);left:0;width:100%;max-height:220px;overflow-y:auto;background:var(--bg-surface);border:1px solid var(--border-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-elevated);z-index:200;display:none;}
+.autocomplete-list.open{display:block;}
+.autocomplete-item{padding:8px 12px;font-size:13px;cursor:pointer;display:flex;flex-direction:column;gap:2px;transition:background 0.1s;}
+.autocomplete-item:hover,.autocomplete-item.active{background:var(--bg-card-hover);}
+.autocomplete-item-name{color:var(--text-primary);font-weight:500;}
+.autocomplete-item-email{font-size:11px;color:var(--text-muted);font-family:var(--font-mono);}
+.autocomplete-item mark{background:none;color:var(--tab-accent);font-weight:600;}
+.autocomplete-empty{padding:10px 12px;font-size:12px;color:var(--text-muted);font-style:italic;}
 .select-input{background:var(--bg-input);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:6px 12px;font-family:var(--font-body);font-size:13px;color:var(--text-primary);outline:none;cursor:pointer;}
 .select-input option{background:var(--bg-card);color:var(--text-primary);}
-/* Lead context banner */
 .lead-context-banner{margin-bottom:16px;padding:10px 16px;background:var(--bg-card);border:1px solid var(--border-strong);border-left:3px solid var(--tab-accent);border-radius:var(--radius-md);display:none;align-items:center;justify-content:space-between;gap:12px;}
 .lead-context-banner.visible{display:flex;}
 .lead-context-info{display:flex;align-items:center;gap:10px;}
@@ -258,8 +265,6 @@ td.primary{color:var(--text-primary);font-weight:500;}
       </div>
       <span class="period-summary" id="periodSummary"></span>
     </div>
-
-    <!-- Quick date pills -->
     <div class="quick-filters">
       <span class="quick-filter-label">Quick:</span>
       <button class="qf-btn active" data-qf="this-month" onclick="setQuickFilter('this-month',this)">This Month</button>
@@ -267,13 +272,17 @@ td.primary{color:var(--text-primary);font-weight:500;}
       <button class="qf-btn" data-qf="this-week" onclick="setQuickFilter('this-week',this)">This Week</button>
       <button class="qf-btn" data-qf="last-week" onclick="setQuickFilter('last-week',this)">Last Week</button>
     </div>
-
-    <!-- Agent Breakdown filter bar — moved up from inside the table -->
     <div class="agent-filter-bar">
       <span class="agent-filter-label">Filters:</span>
+      <!-- Search with autocomplete -->
       <div class="search-wrap">
         <svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10.5 10.5 3 3"/></svg>
-        <input type="search" class="search-input" id="searchInput" placeholder="Search agents…" oninput="filterTable()">
+        <input type="search" class="search-input" id="searchInput" placeholder="Search agents…"
+          oninput="onSearchInput()"
+          onfocus="onSearchFocus()"
+          onkeydown="onSearchKeyDown(event)"
+          autocomplete="off">
+        <div class="autocomplete-list" id="autocompleteList"></div>
       </div>
       <select class="select-input" id="leadFilter" onchange="applyLeadFilter()" style="display:none">
         <option value="all">All leads</option>
@@ -304,8 +313,6 @@ td.primary{color:var(--text-primary);font-weight:500;}
         Export CSV
       </button>
     </div>
-
-    <!-- Lead context banner -->
     <div class="lead-context-banner" id="leadContextBanner">
       <div class="lead-context-info">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6"/></svg>
@@ -316,7 +323,6 @@ td.primary{color:var(--text-primary);font-weight:500;}
       </div>
       <button class="lead-context-clear" onclick="clearLeadFilter()">Show all agents</button>
     </div>
-
     <div class="kpi-grid">
       <div class="kpi-card"><div class="kpi-label">Total Words Dictated</div><div class="kpi-value" id="kpi-total">—</div><div class="kpi-sub"><span class="delta flat" id="kpi-total-delta">—</span><span id="kpi-total-sub">vs prior period</span></div></div>
       <div class="kpi-card"><div class="kpi-label">Active Agents</div><div class="kpi-value" id="kpi-active">—</div><div class="kpi-sub"><span class="delta flat" id="kpi-active-delta">—</span><span>of <span id="kpi-active-total">—</span> in view</span></div></div>
@@ -334,7 +340,6 @@ td.primary{color:var(--text-primary);font-weight:500;}
     </div>
     <div class="table-section">
       <div class="table-card">
-        <!-- Table header: title + subtitle only, no controls -->
         <div class="table-header">
           <div>
             <div class="table-title">Agent Breakdown</div>
@@ -391,6 +396,93 @@ let UI={activeTab:'all',period:'daily',dateFrom:null,dateTo:null,searchQuery:'',
 let CHARTS={trend:null,status:null,wow:null,top:null};
 let pendingWisp=null,pendingRoster=null,currentTableRows=[];
 const BRAND={all:'#0A8080',tp:'#EF523C',tu:'#2BABAD',un:'#BABABC'};
+
+// ── Autocomplete state ──
+let acItems=[],acIndex=-1;
+
+function getAutoCompletePool(){
+  // Returns agents scoped to current tab + lead filter — the same pool the table shows
+  let agents=UI.activeTab==='all'?STATE.agents:STATE.agents.filter(a=>a.team===UI.activeTab);
+  if(UI.leadFilter&&UI.leadFilter!=='all')agents=agents.filter(a=>a.lead===UI.leadFilter);
+  return agents;
+}
+
+function onSearchFocus(){
+  // On focus: show all agents under current lead if box is empty, else filter
+  const q=document.getElementById('searchInput').value.trim();
+  if(!q){
+    buildAutocomplete('');
+  }
+}
+
+function onSearchInput(){
+  const q=document.getElementById('searchInput').value.trim();
+  buildAutocomplete(q);
+  UI.searchQuery=q.toLowerCase();
+  UI.page=1;
+  renderTable(getAgentsForTab(),getFilteredDates());
+}
+
+function highlight(text,query){
+  if(!query)return escHtml(text);
+  const idx=text.toLowerCase().indexOf(query.toLowerCase());
+  if(idx<0)return escHtml(text);
+  return escHtml(text.slice(0,idx))+'<mark>'+escHtml(text.slice(idx,idx+query.length))+'</mark>'+escHtml(text.slice(idx+query.length));
+}
+
+function buildAutocomplete(q){
+  const list=document.getElementById('autocompleteList');
+  const pool=getAutoCompletePool();
+  const lower=q.toLowerCase();
+  // Show up to 8 matching agents; if empty query show first 8 from pool
+  const matches=q
+    ?pool.filter(a=>a.name.toLowerCase().includes(lower)||a.email.toLowerCase().includes(lower)).slice(0,8)
+    :pool.slice(0,8);
+  acItems=matches;
+  acIndex=-1;
+  if(!matches.length){
+    list.innerHTML=`<div class="autocomplete-empty">No agents found</div>`;
+  } else {
+    list.innerHTML=matches.map((a,i)=>`
+      <div class="autocomplete-item" data-idx="${i}" onmousedown="selectAutocomplete(${i})">
+        <span class="autocomplete-item-name">${highlight(a.name,q)}</span>
+        <span class="autocomplete-item-email">${escHtml(a.email)}</span>
+      </div>`).join('');
+  }
+  list.classList.add('open');
+}
+
+function selectAutocomplete(idx){
+  const a=acItems[idx];
+  if(!a)return;
+  const input=document.getElementById('searchInput');
+  input.value=a.name;
+  UI.searchQuery=a.name.toLowerCase();
+  UI.page=1;
+  closeAutocomplete();
+  renderTable(getAgentsForTab(),getFilteredDates());
+}
+
+function closeAutocomplete(){
+  document.getElementById('autocompleteList').classList.remove('open');
+  acItems=[];acIndex=-1;
+}
+
+function onSearchKeyDown(e){
+  const list=document.getElementById('autocompleteList');
+  const items=list.querySelectorAll('.autocomplete-item');
+  if(e.key==='ArrowDown'){e.preventDefault();acIndex=Math.min(acIndex+1,items.length-1);items.forEach((el,i)=>el.classList.toggle('active',i===acIndex));}
+  else if(e.key==='ArrowUp'){e.preventDefault();acIndex=Math.max(acIndex-1,0);items.forEach((el,i)=>el.classList.toggle('active',i===acIndex));}
+  else if(e.key==='Enter'){if(acIndex>=0)selectAutocomplete(acIndex);else closeAutocomplete();}
+  else if(e.key==='Escape'){closeAutocomplete();}
+}
+
+// Close autocomplete when clicking outside
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.search-wrap'))closeAutocomplete();
+});
+
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 function toISO(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return`${y}-${m}-${day}`;}
 function localDate(s){const[y,mo,d]=s.split('-').map(Number);return new Date(y,mo-1,d);}
@@ -478,6 +570,9 @@ function updateLeadFilter(){
 
 function applyLeadFilter(){
   UI.leadFilter=document.getElementById('leadFilter').value;
+  // Clear search when switching leads so autocomplete pool refreshes
+  document.getElementById('searchInput').value='';
+  UI.searchQuery='';
   UI.page=1;
   updateLeadBanner();
   renderAll();
@@ -486,6 +581,8 @@ function applyLeadFilter(){
 function clearLeadFilter(){
   UI.leadFilter='all';
   document.getElementById('leadFilter').value='all';
+  document.getElementById('searchInput').value='';
+  UI.searchQuery='';
   UI.page=1;
   updateLeadBanner();
   renderAll();
@@ -508,6 +605,7 @@ function updateLeadBanner(){
 
 function switchTab(tab){
   UI.activeTab=tab;UI.leadFilter='all';UI.page=1;
+  document.getElementById('searchInput').value='';UI.searchQuery='';
   document.querySelectorAll('.tab-item').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
   const colorMap={all:'--accent-all',tp:'--accent-tp',tu:'--accent-tu',un:'--accent-un'};
   document.documentElement.style.setProperty('--tab-accent',`var(${colorMap[tab]})`);
