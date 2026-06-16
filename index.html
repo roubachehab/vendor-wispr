@@ -76,18 +76,20 @@ body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-pri
 .qf-btn:hover{background:var(--bg-card-hover);color:var(--text-primary);border-color:var(--tab-accent);}
 .qf-btn.active{background:var(--accent-all-dim);color:var(--accent-all);border-color:var(--accent-all);}
 .period-summary{font-size:12px;font-weight:500;color:var(--text-secondary);font-family:var(--font-mono);}
+/* Agent filter bar */
 .agent-filter-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);}
 .agent-filter-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;white-space:nowrap;margin-right:4px;}
-/* Autocomplete search */
+/* Search with autocomplete */
 .search-wrap{position:relative;}
-.search-input{background:var(--bg-input);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:6px 12px 6px 30px;font-family:var(--font-body);font-size:13px;color:var(--text-primary);outline:none;width:220px;transition:border-color 0.15s;}
+.search-input{background:var(--bg-input);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:6px 12px 6px 30px;font-family:var(--font-body);font-size:13px;color:var(--text-primary);outline:none;width:230px;transition:border-color 0.15s;}
 .search-input::placeholder{color:var(--text-muted);}
 .search-input:focus{border-color:var(--tab-accent);}
 .search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;color:var(--text-muted);pointer-events:none;}
 /* Autocomplete dropdown */
-.autocomplete-list{position:absolute;top:calc(100% + 4px);left:0;width:100%;max-height:220px;overflow-y:auto;background:var(--bg-surface);border:1px solid var(--border-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-elevated);z-index:200;display:none;}
+.autocomplete-list{position:absolute;top:calc(100% + 4px);left:0;width:280px;max-height:240px;overflow-y:auto;background:var(--bg-surface);border:1px solid var(--border-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-elevated);z-index:300;display:none;}
 .autocomplete-list.open{display:block;}
-.autocomplete-item{padding:8px 12px;font-size:13px;cursor:pointer;display:flex;flex-direction:column;gap:2px;transition:background 0.1s;}
+.autocomplete-header{padding:6px 12px 4px;font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;border-bottom:1px solid var(--border);}
+.autocomplete-item{padding:7px 12px;font-size:13px;cursor:pointer;display:flex;flex-direction:column;gap:1px;transition:background 0.1s;}
 .autocomplete-item:hover,.autocomplete-item.active{background:var(--bg-card-hover);}
 .autocomplete-item-name{color:var(--text-primary);font-weight:500;}
 .autocomplete-item-email{font-size:11px;color:var(--text-muted);font-family:var(--font-mono);}
@@ -95,6 +97,7 @@ body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-pri
 .autocomplete-empty{padding:10px 12px;font-size:12px;color:var(--text-muted);font-style:italic;}
 .select-input{background:var(--bg-input);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:6px 12px;font-family:var(--font-body);font-size:13px;color:var(--text-primary);outline:none;cursor:pointer;}
 .select-input option{background:var(--bg-card);color:var(--text-primary);}
+/* Lead context banner */
 .lead-context-banner{margin-bottom:16px;padding:10px 16px;background:var(--bg-card);border:1px solid var(--border-strong);border-left:3px solid var(--tab-accent);border-radius:var(--radius-md);display:none;align-items:center;justify-content:space-between;gap:12px;}
 .lead-context-banner.visible{display:flex;}
 .lead-context-info{display:flex;align-items:center;gap:10px;}
@@ -272,16 +275,18 @@ td.primary{color:var(--text-primary);font-weight:500;}
       <button class="qf-btn" data-qf="this-week" onclick="setQuickFilter('this-week',this)">This Week</button>
       <button class="qf-btn" data-qf="last-week" onclick="setQuickFilter('last-week',this)">Last Week</button>
     </div>
+    <!-- Agent filter bar with smart autocomplete search -->
     <div class="agent-filter-bar">
       <span class="agent-filter-label">Filters:</span>
-      <!-- Search with autocomplete -->
       <div class="search-wrap">
         <svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10.5 10.5 3 3"/></svg>
-        <input type="search" class="search-input" id="searchInput" placeholder="Search agents…"
+        <input type="search" class="search-input" id="searchInput"
+          placeholder="Search agents…"
           oninput="onSearchInput()"
           onfocus="onSearchFocus()"
           onkeydown="onSearchKeyDown(event)"
           autocomplete="off">
+        <!-- Autocomplete dropdown — scoped to current lead/tab -->
         <div class="autocomplete-list" id="autocompleteList"></div>
       </div>
       <select class="select-input" id="leadFilter" onchange="applyLeadFilter()" style="display:none">
@@ -397,22 +402,21 @@ let CHARTS={trend:null,status:null,wow:null,top:null};
 let pendingWisp=null,pendingRoster=null,currentTableRows=[];
 const BRAND={all:'#0A8080',tp:'#EF523C',tu:'#2BABAD',un:'#BABABC'};
 
-// ── Autocomplete state ──
+// ── Autocomplete ──
 let acItems=[],acIndex=-1;
 
+// Returns the pool of agents the autocomplete should suggest from:
+// scoped to current tab + lead filter — same set the table shows
 function getAutoCompletePool(){
-  // Returns agents scoped to current tab + lead filter — the same pool the table shows
   let agents=UI.activeTab==='all'?STATE.agents:STATE.agents.filter(a=>a.team===UI.activeTab);
   if(UI.leadFilter&&UI.leadFilter!=='all')agents=agents.filter(a=>a.lead===UI.leadFilter);
   return agents;
 }
 
 function onSearchFocus(){
-  // On focus: show all agents under current lead if box is empty, else filter
+  // On focus: if box is empty, show first 8 agents from current lead/tab as suggestions
   const q=document.getElementById('searchInput').value.trim();
-  if(!q){
-    buildAutocomplete('');
-  }
+  buildAutocomplete(q);
 }
 
 function onSearchInput(){
@@ -423,7 +427,7 @@ function onSearchInput(){
   renderTable(getAgentsForTab(),getFilteredDates());
 }
 
-function highlight(text,query){
+function hlText(text,query){
   if(!query)return escHtml(text);
   const idx=text.toLowerCase().indexOf(query.toLowerCase());
   if(idx<0)return escHtml(text);
@@ -434,18 +438,18 @@ function buildAutocomplete(q){
   const list=document.getElementById('autocompleteList');
   const pool=getAutoCompletePool();
   const lower=q.toLowerCase();
-  // Show up to 8 matching agents; if empty query show first 8 from pool
   const matches=q
     ?pool.filter(a=>a.name.toLowerCase().includes(lower)||a.email.toLowerCase().includes(lower)).slice(0,8)
     :pool.slice(0,8);
-  acItems=matches;
-  acIndex=-1;
+  acItems=matches;acIndex=-1;
+  const leadLabel=UI.leadFilter&&UI.leadFilter!=='all'?`${UI.leadFilter}'s agents`:'agents in view';
+  const header=`<div class="autocomplete-header">${q?`Matching "${escHtml(q)}"`:leadLabel}</div>`;
   if(!matches.length){
-    list.innerHTML=`<div class="autocomplete-empty">No agents found</div>`;
+    list.innerHTML=header+`<div class="autocomplete-empty">No agents found</div>`;
   } else {
-    list.innerHTML=matches.map((a,i)=>`
+    list.innerHTML=header+matches.map((a,i)=>`
       <div class="autocomplete-item" data-idx="${i}" onmousedown="selectAutocomplete(${i})">
-        <span class="autocomplete-item-name">${highlight(a.name,q)}</span>
+        <span class="autocomplete-item-name">${hlText(a.name,q)}</span>
         <span class="autocomplete-item-email">${escHtml(a.email)}</span>
       </div>`).join('');
   }
@@ -453,8 +457,7 @@ function buildAutocomplete(q){
 }
 
 function selectAutocomplete(idx){
-  const a=acItems[idx];
-  if(!a)return;
+  const a=acItems[idx];if(!a)return;
   const input=document.getElementById('searchInput');
   input.value=a.name;
   UI.searchQuery=a.name.toLowerCase();
@@ -477,10 +480,7 @@ function onSearchKeyDown(e){
   else if(e.key==='Escape'){closeAutocomplete();}
 }
 
-// Close autocomplete when clicking outside
-document.addEventListener('click',e=>{
-  if(!e.target.closest('.search-wrap'))closeAutocomplete();
-});
+document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))closeAutocomplete();});
 
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
@@ -562,7 +562,7 @@ function updateLeadFilter(){
   const leads=new Set();
   STATE.agents.filter(a=>a.team===UI.activeTab).forEach(a=>{if(a.lead)leads.add(a.lead);});
   const sorted=[...leads].sort();
-  sel.innerHTML='<option value="all">All leads</option>'+sorted.map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('');
+  sel.innerHTML='<option value="all">All leads</option>'+sorted.map(l=>`<option value="${escHtml(l)}">${escHtml(l)}</option>`).join('');
   sel.value=UI.leadFilter&&sorted.includes(UI.leadFilter)?UI.leadFilter:'all';
   UI.leadFilter=sel.value;
   updateLeadBanner();
@@ -570,7 +570,7 @@ function updateLeadFilter(){
 
 function applyLeadFilter(){
   UI.leadFilter=document.getElementById('leadFilter').value;
-  // Clear search when switching leads so autocomplete pool refreshes
+  // Clear search when switching leads — autocomplete pool updates to new lead
   document.getElementById('searchInput').value='';
   UI.searchQuery='';
   UI.page=1;
@@ -841,9 +841,9 @@ function renderTable(agents,allDates){
         :r.daysSince===0?`<span style="color:var(--green)">today</span>`
         :`<span style="color:${r.daysSince>14?'#ef4444':r.daysSince>7?'#f59e0b':'var(--text-secondary)'}">${r.daysSince}d ago</span>`;
       const tooltip=USAGE_TOOLTIPS[r.usageLevel]||'';
-      const leadCell=showLead?`<td>${esc(r.lead||'—')}</td>`:'';
+      const leadCell=showLead?`<td>${escHtml(r.lead||'—')}</td>`:'';
       return`<tr>
-        <td><div class="agent-cell"><span class="agent-name">${esc(r.name)}</span><span class="agent-email">${esc(r.email)}</span></div></td>
+        <td><div class="agent-cell"><span class="agent-name">${escHtml(r.name)}</span><span class="agent-email">${escHtml(r.email)}</span></div></td>
         <td><span class="team-badge ${r.team}">${r.teamLabel}</span></td>
         ${leadCell}
         <td><span class="usage-badge ${usageClass(r.usageLevel)}" data-tooltip="${tooltip}">${r.usageLevel}</span></td>
@@ -889,7 +889,6 @@ function downloadCSV(){
 }
 
 function csvCell(v){const s=String(v||'');return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s;}
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function handleDragOver(e,id){e.preventDefault();document.getElementById(id).classList.add('drag-over');}
 function handleDragLeave(id){document.getElementById(id).classList.remove('drag-over');}
 function handleDrop(e,type){e.preventDefault();const zi=type==='wisp'?'wispDropZone':'rosterDropZone';document.getElementById(zi).classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f)parseFile(f,type);}
