@@ -78,7 +78,7 @@ body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-pri
 .period-summary{font-size:12px;font-weight:500;color:var(--text-secondary);font-family:var(--font-mono);}
 .agent-filter-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);}
 .agent-filter-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;white-space:nowrap;margin-right:4px;}
-/* Search with autocomplete */
+/* Search + autocomplete */
 .search-wrap{position:relative;}
 .search-input{background:var(--bg-input);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:6px 12px 6px 30px;font-family:var(--font-body);font-size:13px;color:var(--text-primary);outline:none;width:230px;transition:border-color 0.15s;}
 .search-input::placeholder{color:var(--text-muted);}
@@ -90,10 +90,10 @@ body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-pri
 .autocomplete-header{padding:7px 12px 5px;font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .autocomplete-header-count{font-weight:400;color:var(--text-dim);}
 .autocomplete-item{padding:8px 12px;font-size:13px;cursor:pointer;display:flex;flex-direction:column;gap:2px;transition:background 0.1s;}
-.autocomplete-item:hover,.autocomplete-item.active{background:var(--bg-card-hover);}
+.autocomplete-item:hover,.autocomplete-item.ac-active{background:var(--bg-card-hover);}
 .autocomplete-item-name{color:var(--text-primary);font-weight:500;}
 .autocomplete-item-email{font-size:11px;color:var(--text-muted);font-family:var(--font-mono);}
-.autocomplete-item mark{background:none;color:var(--tab-accent);font-weight:600;}
+.autocomplete-item mark{background:none;color:var(--tab-accent);font-weight:700;}
 .autocomplete-empty{padding:12px;font-size:12px;color:var(--text-muted);font-style:italic;text-align:center;}
 .select-input{background:var(--bg-input);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:6px 12px;font-family:var(--font-body);font-size:13px;color:var(--text-primary);outline:none;cursor:pointer;}
 .select-input option{background:var(--bg-card);color:var(--text-primary);}
@@ -284,6 +284,7 @@ td.primary{color:var(--text-primary);font-weight:500;}
           onfocus="onSearchFocus()"
           onkeydown="onSearchKeyDown(event)"
           autocomplete="off">
+        <!-- Autocomplete dropdown -->
         <div class="autocomplete-list" id="autocompleteList"></div>
       </div>
       <select class="select-input" id="leadFilter" onchange="applyLeadFilter()" style="display:none">
@@ -399,23 +400,26 @@ let CHARTS={trend:null,status:null,wow:null,top:null};
 let pendingWisp=null,pendingRoster=null,currentTableRows=[];
 const BRAND={all:'#0A8080',tp:'#EF523C',tu:'#2BABAD',un:'#BABABC'};
 
-// ── Autocomplete ──
-let acItems=[],acIndex=-1;
+// ── Autocomplete state ──
+let acPool=[],acItems=[],acIndex=-1;
 
-// Pool = current tab + lead filter — exactly what the table shows
-function getAutoCompletePool(){
+// The pool the autocomplete draws from — same scope as the table
+function refreshAcPool(){
   let agents=UI.activeTab==='all'?STATE.agents:STATE.agents.filter(a=>a.team===UI.activeTab);
   if(UI.leadFilter&&UI.leadFilter!=='all')agents=agents.filter(a=>a.lead===UI.leadFilter);
-  return agents;
+  acPool=agents;
 }
 
 function onSearchFocus(){
+  refreshAcPool();
   buildAutocomplete(document.getElementById('searchInput').value.trim());
 }
 
 function onSearchInput(){
+  refreshAcPool();
   const q=document.getElementById('searchInput').value.trim();
   buildAutocomplete(q);
+  // Live-filter table as user types
   UI.searchQuery=q.toLowerCase();
   UI.page=1;
   renderTable(getAgentsForTab(),getFilteredDates());
@@ -425,21 +429,29 @@ function hlText(text,query){
   if(!query)return escHtml(text);
   const idx=text.toLowerCase().indexOf(query.toLowerCase());
   if(idx<0)return escHtml(text);
-  return escHtml(text.slice(0,idx))+'<mark>'+escHtml(text.slice(idx,idx+query.length))+'</mark>'+escHtml(text.slice(idx+query.length));
+  return escHtml(text.slice(0,idx))
+    +'<mark>'+escHtml(text.slice(idx,idx+query.length))+'</mark>'
+    +escHtml(text.slice(idx+query.length));
 }
 
 function buildAutocomplete(q){
   const list=document.getElementById('autocompleteList');
-  const pool=getAutoCompletePool();
   const lower=q.toLowerCase();
-  // When a lead is selected and no query, show ALL their agents (up to 20); otherwise top 8 matches
-  const maxItems=(!q&&UI.leadFilter&&UI.leadFilter!=='all')?20:8;
+  // No query + lead selected → show all lead's agents (up to 25)
+  // No query + no lead → show first 8 of current pool
+  // Has query → filter pool, show top 8 matches
+  const maxItems=(q?8:(UI.leadFilter&&UI.leadFilter!=='all'?25:8));
   const matches=q
-    ?pool.filter(a=>a.name.toLowerCase().includes(lower)||a.email.toLowerCase().includes(lower)).slice(0,maxItems)
-    :pool.slice(0,maxItems);
+    ?acPool.filter(a=>a.name.toLowerCase().includes(lower)||a.email.toLowerCase().includes(lower)).slice(0,maxItems)
+    :acPool.slice(0,maxItems);
+
   acItems=matches;acIndex=-1;
-  const scopeLabel=UI.leadFilter&&UI.leadFilter!=='all'?`${UI.leadFilter}'s agents (${pool.length})`:`${pool.length} agents in view`;
+
+  const scopeLabel=UI.leadFilter&&UI.leadFilter!=='all'
+    ?`${UI.leadFilter} (${acPool.length} agents)`
+    :`${acPool.length} agents in view`;
   const header=`<div class="autocomplete-header"><span>${q?`Matching "${escHtml(q)}"`:scopeLabel}</span><span class="autocomplete-header-count">${matches.length} shown</span></div>`;
+
   if(!matches.length){
     list.innerHTML=header+`<div class="autocomplete-empty">No agents found</div>`;
   } else {
@@ -468,14 +480,14 @@ function closeAutocomplete(){
 }
 
 function onSearchKeyDown(e){
-  const list=document.getElementById('autocompleteList');
-  const items=list.querySelectorAll('.autocomplete-item');
-  if(e.key==='ArrowDown'){e.preventDefault();acIndex=Math.min(acIndex+1,items.length-1);items.forEach((el,i)=>el.classList.toggle('active',i===acIndex));}
-  else if(e.key==='ArrowUp'){e.preventDefault();acIndex=Math.max(acIndex-1,0);items.forEach((el,i)=>el.classList.toggle('active',i===acIndex));}
-  else if(e.key==='Enter'){if(acIndex>=0)selectAutocomplete(acIndex);else closeAutocomplete();}
+  const items=document.getElementById('autocompleteList').querySelectorAll('.autocomplete-item');
+  if(e.key==='ArrowDown'){e.preventDefault();acIndex=Math.min(acIndex+1,items.length-1);items.forEach((el,i)=>el.classList.toggle('ac-active',i===acIndex));}
+  else if(e.key==='ArrowUp'){e.preventDefault();acIndex=Math.max(acIndex-1,0);items.forEach((el,i)=>el.classList.toggle('ac-active',i===acIndex));}
+  else if(e.key==='Enter'&&acIndex>=0){selectAutocomplete(acIndex);}
   else if(e.key==='Escape'){closeAutocomplete();}
 }
 
+// Close autocomplete when clicking outside
 document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))closeAutocomplete();});
 
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -565,7 +577,7 @@ function updateLeadFilter(){
 
 function applyLeadFilter(){
   UI.leadFilter=document.getElementById('leadFilter').value;
-  // Clear search when switching leads so autocomplete pool refreshes correctly
+  // Reset search when lead changes so autocomplete pool is fresh
   document.getElementById('searchInput').value='';
   UI.searchQuery='';
   UI.page=1;
